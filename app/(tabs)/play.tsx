@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineMatchesScreen } from '@/components/remontada/OnlineScreens';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -14,6 +16,11 @@ import { useAppData } from '@/lib/remontada-context';
 const FILTERS = ['All', 'Men', 'Women', 'Mixed'];
 
 export default function PlayScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineMatchesScreen /> : <DemoPlayScreen />;
+}
+
+function DemoPlayScreen() {
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState('All');
   const { matches } = useAppData();

@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineMatchRoom } from '@/components/remontada/OnlineMatchRoom';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -13,6 +15,11 @@ import { Category } from '@/lib/remontada-types';
 // Score-Eintippen), damit auch weniger technikaffine Spieler das schnell
 // bedienen können.
 export default function ReportResultScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineMatchRoom /> : <DemoReportResultScreen />;
+}
+
+function DemoReportResultScreen() {
   const insets = useSafeAreaInsets();
   const { categoryRatings, recordMatchResult } = useAppData();
 

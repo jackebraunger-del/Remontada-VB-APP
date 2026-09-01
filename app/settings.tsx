@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineProfileScreen } from '@/components/remontada/OnlineScreens';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -10,6 +12,11 @@ import { RColors, withAlpha } from '@/constants/remontada-colors';
 import { useAppData } from '@/lib/remontada-context';
 
 export default function SettingsScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineProfileScreen settings /> : <DemoSettingsScreen />;
+}
+
+function DemoSettingsScreen() {
   const insets = useSafeAreaInsets();
   const { resetDemoData } = useAppData();
   const [confirming, setConfirming] = useState(false);

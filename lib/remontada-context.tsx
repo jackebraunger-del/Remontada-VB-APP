@@ -110,7 +110,7 @@ function zeroCategoryRatingsFor(gender: Gender): CategoryRating[] {
   }));
 }
 
-interface AppDataApi {
+export interface AppDataApi {
   // Economy / Locker
   coins: number;
   dailyRewardClaimedToday: boolean;
@@ -136,11 +136,11 @@ interface AppDataApi {
   // Matches / Play
   matches: OpenMatch[];
   recentResult: RecentResult | null;
-  addMatch: (input: NewMatchInput) => void;
+  addMatch: (input: NewMatchInput) => void | Promise<void>;
 
   // Karte: von Nutzern selbst hinzugefügte Orte
   customCourts: CustomCourt[];
-  addCustomCourt: (name: string, lat: number, lng: number) => void;
+  addCustomCourt: (name: string, lat: number, lng: number) => void | Promise<void>;
 
   // Karte: kurzlebige Übergabe "auf der Karte gewählter Ort" zurück ans
   // Create-Match-Formular (wird NICHT gespeichert, nur zur Laufzeit).
@@ -162,13 +162,13 @@ interface AppDataApi {
   onboardingComplete: boolean;
   playerName: string;
   gender: Gender | null;
-  completeOnboarding: (name: string, gender: Gender) => void;
+  completeOnboarding: (name: string, gender: Gender) => void | Promise<void>;
 
   // Alles zurück auf "frischer Start, keine Demo-Daten" (inkl. Onboarding)
   resetDemoData: () => void;
 }
 
-const AppDataContext = createContext<AppDataApi | null>(null);
+export const AppDataContext = createContext<AppDataApi | null>(null);
 
 const STORM_SERVE_UNLOCK_CHANCE = 0.12; // ~90% Coins, kleine Chance auf Skin
 

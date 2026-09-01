@@ -1,6 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,20 +8,30 @@ import { RButton, RCard, RScreen } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
 import { useAppData } from '@/lib/remontada-context';
 import { Gender } from '@/lib/remontada-types';
+import { demoMode, errorMessage } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { completeOnboarding } = useAppData();
+  const { signOut } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
   const [gender, setGender] = useState<Gender | null>(null);
 
   const canSubmit = name.trim().length > 0 && gender !== null;
 
-  function onSubmit() {
-    if (!gender || name.trim().length === 0) return;
-    completeOnboarding(name, gender);
-    router.replace('/(tabs)');
+  async function onSubmit() {
+    if (busy || !gender || name.trim().length === 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await completeOnboarding(name, gender);
+      // The protected navigator opens the app only after the profile was saved.
+    } catch (e) { setError(errorMessage(e)); }
+    finally { setBusy(false); }
   }
 
   return (
@@ -54,6 +63,8 @@ export default function OnboardingScreen() {
                 style={styles.textInput}
                 autoCapitalize="words"
                 autoFocus
+                maxLength={60}
+                editable={!busy}
               />
             </RCard>
           </View>
@@ -79,11 +90,13 @@ export default function OnboardingScreen() {
             </View>
           </View>
 
-          <RButton label="Continue" onPress={onSubmit} disabled={!canSubmit} style={{ marginTop: 8 }} />
+          {error && <Text accessibilityRole="alert" style={{ color: RColors.lossRed }}>{error}</Text>}
+          <RButton label={busy ? 'Saving…' : 'Continue'} onPress={() => void onSubmit()} disabled={!canSubmit || busy} style={{ marginTop: 8 }} />
+          {!demoMode && <RButton label="Sign out" disabled={busy} onPress={() => void signOut().catch((e) => setError(errorMessage(e)))} />}
 
           <View style={styles.demoNoteRow}>
             <Ionicons name="information-circle-outline" size={14} color={RColors.text9} />
-            <Text style={styles.demoNote}>You can change this later. Demo matches stay until you reset from Settings.</Text>
+            <Text style={styles.demoNote}>{demoMode ? 'Local demo only. Example matches stay until you reset from Settings.' : 'Your display name and category information are visible to signed-in players. Your email address is not shared with them.'}</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

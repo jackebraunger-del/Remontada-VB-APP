@@ -1,4 +1,6 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineRankingScreen } from '@/components/remontada/OnlineScreens';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -17,6 +19,11 @@ const RANK_COLORS: Record<number, string> = {
 };
 
 export default function RankingScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineRankingScreen /> : <DemoRankingScreen />;
+}
+
+function DemoRankingScreen() {
   const insets = useSafeAreaInsets();
   const [category, setCategory] = useState('Open');
   const { leaderboard } = useAppData();

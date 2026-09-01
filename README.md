@@ -1,5 +1,14 @@
 # Welcome to your Expo app 👋
 
+## Remontada Online-Beta
+
+Anmeldung, gemeinsame Matches und Ergebnisbestätigung sind für Supabase vorbereitet.
+Die Einrichtung steht in [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
+Ohne Konfiguration erscheint ein Einrichtungshinweis. Die bisherige lokale Demo
+ist mit `EXPO_PUBLIC_DEMO_MODE=true` weiterhin verfügbar und lädt keine Daten hoch.
+
+Prüfungen: `npm run typecheck`, `npm run lint`, `npm run test:database`.
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started

@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineMatchesScreen } from '@/components/remontada/OnlineScreens';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
@@ -12,6 +14,11 @@ import { RColors, withAlpha } from '@/constants/remontada-colors';
 import { useAppData } from '@/lib/remontada-context';
 
 export default function HomeScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineMatchesScreen home /> : <DemoHomeScreen />;
+}
+
+function DemoHomeScreen() {
   const insets = useSafeAreaInsets();
   const { coins, dailyRewardClaimedToday, claimDailyReward, matches, recentResult, categoryRatings } = useAppData();
   const openRank = categoryRatings.find((c) => c.category === 'Open') ?? categoryRatings[0];

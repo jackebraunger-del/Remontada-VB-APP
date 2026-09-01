@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineMatchRoom } from '@/components/remontada/OnlineMatchRoom';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -13,6 +15,11 @@ import { RECENT_RESULT } from '@/lib/remontada-mock-data';
 const REPORT_REASONS = ['Wrong score', 'Player didn’t show up', 'Suspected cheating', 'Other'];
 
 export default function MatchRoomScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineMatchRoom /> : <DemoMatchRoomScreen />;
+}
+
+function DemoMatchRoomScreen() {
   const insets = useSafeAreaInsets();
   const { dailyRewardClaimedToday, claimDailyReward } = useAppData();
   const [supportVisible, setSupportVisible] = useState(false);

@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineCreateMatch } from '@/components/remontada/OnlineCreateMatch';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -23,6 +25,11 @@ const MATCH_TYPES: { key: MatchType; title: string; blurb: string; icon: React.C
 ];
 
 export default function CreateMatchScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineCreateMatch /> : <DemoCreateMatchScreen />;
+}
+
+function DemoCreateMatchScreen() {
   const insets = useSafeAreaInsets();
   const { addMatch, scheduleSession, pendingLocationPick, setPendingLocationPick } = useAppData();
 

@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { RColors } from '@/constants/remontada-colors';
 import { useAppData } from '@/lib/remontada-context';
+import { demoMode } from '@/lib/supabase';
 
 // Kleiner aktiver Indikator-Balken über dem Icon, im Valorant-artigen
 // eckigen Stil — statt der Standard-Punkt/Pill-Indikatoren.
@@ -102,7 +103,9 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Protected guard={demoMode}>
+        <Tabs.Screen name="explore" options={{ href: null }} />
+      </Tabs.Protected>
     </Tabs>
   );
 }

@@ -15,9 +15,14 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { ActivityIndicator, View } from 'react-native';
+import { AuthProvider, useAuth } from '@/lib/auth-context';
+import { OnlineDataProvider } from '@/lib/online-context';
+import { demoMode } from '@/lib/supabase';
+import { AuthScreen } from '@/components/remontada/AuthScreen';
 
 import { RColors } from '@/constants/remontada-colors';
-import { AppDataProvider } from '@/lib/remontada-context';
+import { AppDataProvider, useAppData } from '@/lib/remontada-context';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -54,30 +59,52 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppDataProvider>
+      <AuthProvider>
         <ThemeProvider value={RemontadaTheme}>
+          <AccountBoundary />
+          <StatusBar style="light" />
+        </ThemeProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+function AccountBoundary() {
+  const { loading, session } = useAuth();
+  if (demoMode) return <AppDataProvider><AppNavigator /></AppDataProvider>;
+  if (loading) return <View style={{ flex: 1, justifyContent: 'center', backgroundColor: RColors.bgApp }}><ActivityIndicator color={RColors.accent} /></View>;
+  if (!session) return <AuthScreen />;
+  // Remount all state on account changes: no previous account's data remains in memory.
+  return <OnlineDataProvider key={session.user.id}><AppNavigator /></OnlineDataProvider>;
+}
+
+function AppNavigator() {
+  const { onboardingComplete } = useAppData();
+  return (
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: RColors.bgApp } }}>
+            <Stack.Protected guard={!onboardingComplete}>
+              <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+            </Stack.Protected>
+            <Stack.Protected guard={onboardingComplete}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="match-room" />
+            <Stack.Screen name="settings" />
+            <Stack.Screen name="create-match" />
+            <Stack.Screen name="report-result" />
+            <Stack.Protected guard={demoMode}>
             <Stack.Screen name="locker" />
             <Stack.Screen name="shop" />
             <Stack.Screen name="session" />
             <Stack.Screen name="reward" />
             <Stack.Screen name="reward-skin" />
             <Stack.Screen name="reward-claimed" />
-            <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-            <Stack.Screen name="settings" />
             <Stack.Screen name="stats" />
             <Stack.Screen name="rank-tiers" />
             <Stack.Screen name="coach" />
-            <Stack.Screen name="create-match" />
-            <Stack.Screen name="report-result" />
             <Stack.Screen name="dev-n8n-test" options={{ headerShown: true, title: 'n8n Verbindungstest' }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
+            </Stack.Protected>
+            </Stack.Protected>
           </Stack>
-          <StatusBar style="light" />
-        </ThemeProvider>
-      </AppDataProvider>
-    </GestureHandlerRootView>
   );
 }

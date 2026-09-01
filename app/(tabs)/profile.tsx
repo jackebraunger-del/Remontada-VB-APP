@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useOnlineData } from '@/lib/online-context';
+import { OnlineProfileScreen } from '@/components/remontada/OnlineScreens';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import React from 'react';
@@ -19,6 +21,11 @@ const TIER_COLOR: Record<string, string> = {
 };
 
 export default function ProfileScreen() {
+  const online = useOnlineData();
+  return online ? <OnlineProfileScreen /> : <DemoProfileScreen />;
+}
+
+function DemoProfileScreen() {
   const insets = useSafeAreaInsets();
   const { coins, skins, categoryRatings, profileVerified, playerName } = useAppData();
   const equipped = skins.find((s) => s.equipped) ?? skins.find((s) => s.id === 'sunset-court')!;
