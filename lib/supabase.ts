@@ -1,6 +1,6 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient, processLock } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
@@ -16,7 +16,7 @@ export const supabase = backendConfigured && !demoMode
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
-        lock: processLock,
+        flowType: 'pkce',
       },
     })
   : null;
@@ -24,6 +24,27 @@ export const supabase = backendConfigured && !demoMode
 export function requireBackend() {
   if (!supabase) throw new Error('Supabase is not configured. Add the project URL and publishable key to .env.local.');
   return supabase;
+}
+
+export const NETWORK_TIMEOUT_MS = 15000;
+
+/** Abort the underlying Supabase request so a screen cannot stay busy forever. */
+export async function withRequestTimeout<T>(
+  operation: (signal: AbortSignal) => PromiseLike<T>,
+  timeoutMs = NETWORK_TIMEOUT_MS,
+): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await operation(controller.signal);
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error('Die Anfrage hat zu lange gedauert. Prüfe deine Verbindung und versuche es erneut.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function errorMessage(error: unknown): string {

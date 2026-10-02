@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RScreen } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { CATEGORY_LABELS } from '@/constants/remontada-labels';
 import { useAppData } from '@/lib/remontada-context';
 
 interface ChatMessage {
@@ -40,7 +41,7 @@ export default function CoachScreen() {
     {
       id: nextId(),
       from: 'coach',
-      text: "Hi! I'm your AI Coach (demo). Ask me things like \"how can I improve\" or \"which opponent gave me the most trouble\" and I'll look at your stats.",
+      text: 'Hi! Ich bin dein KI-Coach (Demo). Frag mich zum Beispiel „Wie kann ich mich verbessern?“ oder „Gegen wen war ich am schlechtesten?“ und ich schaue mir deine Statistiken an.',
     },
   ]);
 
@@ -49,29 +50,32 @@ export default function CoachScreen() {
     const withMatches = categoryRatings.filter((c) => c.matches > 0);
 
     if (withMatches.length === 0) {
-      return "You don't have any recorded matches yet, so I can't spot patterns. Play a few games and ask me again!";
+      return 'Du hast noch keine gespeicherten Matches, daher kann ich noch keine Muster erkennen. Spiele ein paar Spiele und frag mich dann erneut!';
     }
 
     if (q.includes('schlecht') || q.includes('worst') || q.includes('gegner') || q.includes('opponent') || q.includes('trouble')) {
       const worst = withMatches.reduce((a, b) => (b.wins / b.matches < a.wins / a.matches ? b : a));
       const rate = Math.round((worst.wins / worst.matches) * 100);
-      return `Your toughest category looks like ${worst.category} — a ${rate}% win rate over ${worst.matches} matches. ${
-        recentResult ? `Your last result there was ${recentResult.sets}.` : ''
-      } Try drilling ${worst.category.toLowerCase()} matchups specifically.`;
+      const categoryLabel = CATEGORY_LABELS[worst.category] ?? worst.category;
+      return `Deine schwierigste Kategorie scheint ${categoryLabel} zu sein — eine Sieg-Quote von ${rate}% über ${worst.matches} Matches. ${
+        recentResult ? `Dein letztes Ergebnis dort war ${recentResult.sets}. ` : ''
+      }Übe gezielt Spiele in der Kategorie ${categoryLabel}.`;
     }
 
     if (q.includes('stärk') || q.includes('best') || q.includes('strong')) {
       const best = withMatches.reduce((a, b) => (b.wins / b.matches > a.wins / a.matches ? b : a));
       const rate = Math.round((best.wins / best.matches) * 100);
-      return `You're strongest in ${best.category} — ${rate}% win rate across ${best.matches} matches. Keep leaning into that category for ranked points.`;
+      const categoryLabel = CATEGORY_LABELS[best.category] ?? best.category;
+      return `Du bist am stärksten in der Kategorie ${categoryLabel} — ${rate}% Sieg-Quote über ${best.matches} Matches. Nutze diese Kategorie weiter für gewertete Punkte.`;
     }
 
     if (q.includes('verbess') || q.includes('improve') || q.includes('tip')) {
       const lowest = withMatches.reduce((a, b) => (b.rating < a.rating ? b : a));
-      return `One concrete step: your rating is lowest in ${lowest.category} (${lowest.rating}). Play a few ranked ${lowest.category} matches this week and focus on consistent serve placement — that's usually the fastest way to climb.`;
+      const categoryLabel = CATEGORY_LABELS[lowest.category] ?? lowest.category;
+      return `Ein konkreter Schritt: Deine Wertung ist am niedrigsten in der Kategorie ${categoryLabel} (${lowest.rating}). Spiele diese Woche ein paar gewertete Matches in dieser Kategorie und achte auf eine gleichmäßige Aufschlag-Platzierung — das ist meist der schnellste Weg nach oben.`;
     }
 
-    return "I can currently answer questions about your category performance — try asking which category is your strongest or weakest, or how to improve.";
+    return 'Ich kann aktuell Fragen zu deiner Leistung in den Kategorien beantworten — frag mich zum Beispiel, welche Kategorie deine stärkste oder schwächste ist, oder wie du dich verbessern kannst.';
   }
 
   function send(text: string) {
@@ -87,12 +91,12 @@ export default function CoachScreen() {
     <RScreen>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.headerRow, { paddingTop: insets.top + 12 }]}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
+          <Pressable onPress={() => router.back()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Zurück">
             <Ionicons name="chevron-back" size={22} color={RColors.text2} />
           </Pressable>
           <View style={styles.headerCenter}>
             <MaterialCommunityIcons name="robot-excited-outline" size={16} color={RColors.diamondBlue} />
-            <Text style={styles.headerTitle}>AI Coach</Text>
+            <Text style={styles.headerTitle}>KI-Coach</Text>
           </View>
           <View style={styles.demoTag}>
             <Text style={styles.demoTagText}>Demo</Text>
@@ -111,7 +115,7 @@ export default function CoachScreen() {
           {messages.length <= 1 && (
             <View style={{ gap: 8, marginTop: 4 }}>
               {SUGGESTIONS.map((s) => (
-                <Pressable key={s} style={styles.suggestionChip} onPress={() => send(s)}>
+                <Pressable key={s} style={styles.suggestionChip} onPress={() => send(s)} accessibilityRole="button" accessibilityLabel={s}>
                   <Text style={styles.suggestionText}>{s}</Text>
                 </Pressable>
               ))}
@@ -123,13 +127,14 @@ export default function CoachScreen() {
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Ask your coach…"
+            placeholder="Frag deinen Coach…"
             placeholderTextColor={RColors.text9}
             style={styles.input}
             onSubmitEditing={() => send(input)}
             returnKeyType="send"
+            accessibilityLabel="Nachricht an den Coach"
           />
-          <Pressable style={styles.sendBtn} onPress={() => send(input)}>
+          <Pressable style={styles.sendBtn} onPress={() => send(input)} accessibilityRole="button" accessibilityLabel="Nachricht senden">
             <Ionicons name="send" size={16} color={RColors.white} />
           </Pressable>
         </View>

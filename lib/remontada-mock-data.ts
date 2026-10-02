@@ -31,9 +31,9 @@ export const CATEGORY_RATINGS: CategoryRating[] = [
 export const OPEN_MATCHES: OpenMatch[] = [
   {
     id: 'm1',
-    location: 'Las Canteras – Court 4',
-    timeLabel: 'Today 18:00',
-    tags: ['2v2', 'Mixed', 'Intermediate'],
+    location: 'Las Canteras – Feld 4',
+    timeLabel: 'Heute 18:00',
+    tags: ['2 gegen 2', 'Mixed', 'Fortgeschritten'],
     ranked: true,
     playersJoined: 3,
     playersNeeded: 1,
@@ -42,7 +42,7 @@ export const OPEN_MATCHES: OpenMatch[] = [
     id: 'm2',
     location: 'Las Canteras',
     timeLabel: '18:00–20:00',
-    tags: ['2v2', 'Mixed', 'Intermediate'],
+    tags: ['2 gegen 2', 'Mixed', 'Fortgeschritten'],
     ranked: false,
     playersJoined: 3,
     playersNeeded: 1,
@@ -50,9 +50,9 @@ export const OPEN_MATCHES: OpenMatch[] = [
   },
   {
     id: 'm3',
-    location: 'Playa del Inglés – Court 1',
-    timeLabel: 'Tomorrow 09:00',
-    tags: ['2v2', 'Open', 'Advanced'],
+    location: 'Playa del Inglés – Feld 1',
+    timeLabel: 'Morgen 09:00',
+    tags: ['2 gegen 2', 'Offen', 'Erfahren'],
     ranked: false,
     playersJoined: 2,
     playersNeeded: 2,
@@ -66,7 +66,7 @@ export const RECENT_RESULT: RecentResult = {
   teamB: ['Carlos', 'Laura'],
   winner: 'A',
   sets: '21–18 · 17–21 · 15–12',
-  category: 'Mixed · Intermediate · Ranked',
+  category: 'Mixed · Fortgeschritten · Gewertet',
   ratingDeltas: [
     { name: 'Jakob', delta: 24 },
     { name: 'Maria', delta: 27 },
@@ -74,10 +74,10 @@ export const RECENT_RESULT: RecentResult = {
 };
 
 export const LEADERBOARD: LeaderboardEntry[] = [
-  { rank: 1, name: 'Sofia R.', verified: true, skillTier: 'Advanced Diamond', rating: 2104 },
-  { rank: 2, name: 'Carlos M.', skillTier: 'Advanced Diamond', rating: 2041 },
-  { rank: 3, name: 'Laura V.', skillTier: 'Advanced Gold', rating: 1988 },
-  { rank: 21, name: 'Jakob B.', skillTier: 'Intermediate Diamond', rating: 1612, isYou: true },
+  { rank: 1, name: 'Sofia R.', verified: true, skillTier: 'Erfahren Diamond', rating: 2104 },
+  { rank: 2, name: 'Carlos M.', skillTier: 'Erfahren Diamond', rating: 2041 },
+  { rank: 3, name: 'Laura V.', skillTier: 'Erfahren Gold', rating: 1988 },
+  { rank: 21, name: 'Jakob B.', skillTier: 'Fortgeschritten Diamond', rating: 1612, isYou: true },
 ];
 
 export const SKINS: Skin[] = [
@@ -109,7 +109,7 @@ export const SKINS: Skin[] = [
     gradientFrom: RColors.epicPurple,
     gradientTo: RColors.epicPurple,
     owned: false,
-    achievementLabel: 'Win 10 Ranked',
+    achievementLabel: 'Gewinne 10 gewertete Matches',
     priceCoins: 900,
   },
   {
@@ -120,7 +120,7 @@ export const SKINS: Skin[] = [
     gradientFrom: RColors.legendaryRed,
     gradientTo: RColors.legendaryGlow,
     owned: false,
-    achievementLabel: 'Reach Adv. Diamond',
+    achievementLabel: 'Erreiche Erfahren Diamond',
     priceCoins: 1900,
   },
   {
@@ -150,28 +150,28 @@ export const SESSION_NETS: SessionNet[] = [
     skill: 'Intermediate',
     min: 6,
     max: 8,
-    note: 'Advanced can join anytime (playing down) · Beginner needs a Yes vote to move up',
+    note: 'Erfahrene können jederzeit runter wechseln · Anfänger brauchen ein Ja zum Aufstieg',
   },
   {
     id: 2,
     skill: 'Beginner',
     min: 9,
     max: 12,
-    note: 'Intermediate & Advanced can join anytime (playing down)',
+    note: 'Fortgeschrittene & Erfahrene können jederzeit runter wechseln',
   },
   {
     id: 3,
     skill: 'Advanced',
     min: 6,
     max: 8,
-    note: 'Top level · Beginner/Intermediate can request to move up (needs a Yes vote)',
+    note: 'Höchstes Niveau · Anfänger/Fortgeschrittene können den Aufstieg beantragen (braucht ein Ja)',
   },
   {
     id: 4,
     skill: 'Advanced',
     min: 6,
     max: 8,
-    note: 'Top level · Beginner/Intermediate can request to move up (needs a Yes vote)',
+    note: 'Höchstes Niveau · Anfänger/Fortgeschrittene können den Aufstieg beantragen (braucht ein Ja)',
   },
 ];
 

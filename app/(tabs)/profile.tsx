@@ -8,10 +8,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CoinIcon, FrameRing } from '@/components/remontada/icons';
-import { RCard, RScreen } from '@/components/remontada/primitives';
+import { RCard, REmptyState, RScreen } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { CATEGORY_LABELS } from '@/constants/remontada-labels';
 import { PLACEMENT_MATCHES_REQUIRED, useAppData } from '@/lib/remontada-context';
 import { PROFILE } from '@/lib/remontada-mock-data';
+
+const SKILL_SHORT: Record<string, string> = { Beginner: 'Anf.', Intermediate: 'Fortg.', Advanced: 'Erf.' };
 
 const TIER_COLOR: Record<string, string> = {
   Bronze: RColors.bronze,
@@ -39,13 +42,13 @@ function DemoProfileScreen() {
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingHorizontal: 20, paddingBottom: 24, gap: 20 }}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>PROFILE</Text>
+          <Text style={styles.title}>PROFIL</Text>
           <View style={styles.headerRight}>
             <View style={styles.coinBadge}>
               <CoinIcon size={14} />
               <Text style={styles.coinText}>{coins}</Text>
             </View>
-            <Pressable hitSlop={10} onPress={() => router.push('/settings')}>
+            <Pressable hitSlop={10} onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel="Einstellungen öffnen">
               <Ionicons name="settings-outline" size={22} color={RColors.text5} />
             </Pressable>
           </View>
@@ -57,18 +60,18 @@ function DemoProfileScreen() {
             <Text style={styles.name}>{(playerName || PROFILE.name).toUpperCase()}</Text>
             {profileVerified && <MaterialCommunityIcons name="check-decagram" size={16} color={RColors.diamondBlue} />}
           </View>
-          <Text style={styles.mutedSmall}>{profileVerified ? 'Verified Player' : 'Unverified'} · {PROFILE.club}</Text>
+          <Text style={styles.mutedSmall}>{profileVerified ? 'Verifizierter Spieler' : 'Nicht verifiziert'} · {PROFILE.club}</Text>
         </View>
 
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Pressable style={{ flex: 1 }} onPress={() => router.push('/locker')}>
+          <Pressable style={{ flex: 1 }} onPress={() => router.push('/locker')} accessibilityRole="button" accessibilityLabel="Spind öffnen">
             <RCard contentStyle={styles.linkRow}>
               <MaterialCommunityIcons name="treasure-chest" size={18} color={RColors.rareOrange} />
-              <Text style={styles.linkLabel}>Locker</Text>
+              <Text style={styles.linkLabel}>Spind</Text>
               <Ionicons name="chevron-forward" size={13} color={RColors.text9} />
             </RCard>
           </Pressable>
-          <Pressable style={{ flex: 1 }} onPress={() => router.push('/shop')}>
+          <Pressable style={{ flex: 1 }} onPress={() => router.push('/shop')} accessibilityRole="button" accessibilityLabel="Shop öffnen">
             <RCard contentStyle={styles.linkRow}>
               <CoinIcon size={16} />
               <Text style={styles.linkLabel}>Shop</Text>
@@ -77,10 +80,10 @@ function DemoProfileScreen() {
           </Pressable>
         </View>
 
-        <Pressable onPress={() => router.push('/coach')}>
+        <Pressable onPress={() => router.push('/coach')} accessibilityRole="button" accessibilityLabel="KI-Coach fragen">
           <RCard borderColor={withAlpha(RColors.diamondBlue, 0.4)} contentStyle={styles.linkRow}>
             <MaterialCommunityIcons name="robot-excited-outline" size={18} color={RColors.diamondBlue} />
-            <Text style={styles.linkLabel}>Ask your AI Coach</Text>
+            <Text style={styles.linkLabel}>Frag deinen KI-Coach</Text>
             <Ionicons name="chevron-forward" size={13} color={RColors.text9} />
           </RCard>
         </Pressable>
@@ -92,56 +95,55 @@ function DemoProfileScreen() {
               <Pressable
                 key={c.category}
                 style={{ flex: 1 }}
-                onPress={() => router.push({ pathname: '/rank-tiers', params: { current: inPlacement ? '' : c.tier } })}>
+                onPress={() => router.push({ pathname: '/rank-tiers', params: { current: inPlacement ? '' : c.tier } })}
+                accessibilityRole="button"
+                accessibilityLabel={`Rang in der Kategorie ${CATEGORY_LABELS[c.category] ?? c.category}`}>
                 <RCard contentStyle={styles.ratingCard}>
-                  <Text style={styles.ratingCategory}>{c.category}</Text>
+                  <Text style={styles.ratingCategory}>{CATEGORY_LABELS[c.category] ?? c.category}</Text>
                   {inPlacement ? (
                     <Text style={[styles.ratingTier, { color: RColors.text5 }]}>
-                      Placement {c.matches}/{PLACEMENT_MATCHES_REQUIRED}
+                      Einstufung {c.matches}/{PLACEMENT_MATCHES_REQUIRED}
                     </Text>
                   ) : (
                     <Text style={[styles.ratingTier, { color: TIER_COLOR[c.tier] }]}>
-                      {c.skill === 'Intermediate' ? 'Int.' : c.skill === 'Advanced' ? 'Adv.' : c.skill} {c.tier}
+                      {SKILL_SHORT[c.skill] ?? c.skill} {c.tier}
                     </Text>
                   )}
-                  <Text style={styles.mutedSmall}>{inPlacement ? `${c.matches} played` : `${c.rating} · #${c.clubRank}`}</Text>
+                  <Text style={styles.mutedSmall}>{inPlacement ? `${c.matches} gespielt` : `${c.rating} · #${c.clubRank}`}</Text>
                 </RCard>
               </Pressable>
             );
           })}
         </View>
 
-        <Pressable onPress={() => router.push('/stats')}>
+        <Pressable onPress={() => router.push('/stats')} accessibilityRole="button" accessibilityLabel="Statistiken ansehen">
           <RCard contentStyle={styles.statsRow}>
             <Stat value={String(totalMatches)} label="Matches" />
-            <Stat value={String(totalWins)} label="Wins" color={RColors.win} />
-            <Stat value={String(totalLosses)} label="Losses" color={RColors.lossRed} />
-            <Stat value={`${winRate}%`} label="Win Rate" />
+            <Stat value={String(totalWins)} label="Siege" color={RColors.win} />
+            <Stat value={String(totalLosses)} label="Niederl." color={RColors.lossRed} />
+            <Stat value={`${winRate}%`} label="Sieg-Quote" />
           </RCard>
         </Pressable>
 
         <View style={{ gap: 10 }}>
-          <Text style={styles.sectionTitle}>Recent Matches</Text>
+          <Text style={styles.sectionTitle}>Letzte Matches</Text>
           {totalMatches === 0 ? (
-            <RCard contentStyle={{ padding: 16, alignItems: 'center', gap: 4 }}>
-              <Text style={styles.matchTitle}>No matches yet</Text>
-              <Text style={styles.mutedSmall}>Play your first match to see results here.</Text>
-            </RCard>
+            <REmptyState title="Noch keine Matches" description="Spiele dein erstes Match, um hier Ergebnisse zu sehen." />
           ) : (
             <>
               <RCard contentStyle={styles.matchRow}>
                 <View>
-                  <Text style={styles.matchTitle}>vs Carlos & Laura</Text>
-                  <Text style={styles.mutedSmall}>Mixed · Ranked</Text>
+                  <Text style={styles.matchTitle}>gegen Carlos & Laura</Text>
+                  <Text style={styles.mutedSmall}>Mixed · Gewertet</Text>
                 </View>
-                <Text style={[styles.matchDelta, { color: RColors.win }]}>Won +24</Text>
+                <Text style={[styles.matchDelta, { color: RColors.win }]}>Sieg +24</Text>
               </RCard>
               <RCard contentStyle={styles.matchRow}>
                 <View>
-                  <Text style={styles.matchTitle}>vs Pedro & Ana</Text>
-                  <Text style={styles.mutedSmall}>Open · Ranked</Text>
+                  <Text style={styles.matchTitle}>gegen Pedro & Ana</Text>
+                  <Text style={styles.mutedSmall}>Offen · Gewertet</Text>
                 </View>
-                <Text style={[styles.matchDelta, { color: RColors.lossRed }]}>Lost −16</Text>
+                <Text style={[styles.matchDelta, { color: RColors.lossRed }]}>Niederlage −16</Text>
               </RCard>
             </>
           )}

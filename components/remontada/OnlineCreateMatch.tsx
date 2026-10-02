@@ -1,25 +1,31 @@
 import { randomUUID } from 'expo-crypto';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useOnlineData } from '@/lib/online-context';
 import { useAppData } from '@/lib/remontada-context';
 import { errorMessage } from '@/lib/supabase';
-import { RButton, RButtonOutline, RChip } from './primitives';
+import { RButton, RButtonOutline, RChip, RErrorBanner, RInput } from './primitives';
 import { OnlinePage, onlineStyles as s } from './OnlineScreens';
-import { RColors } from '@/constants/remontada-colors';
+import { RSpacing } from '@/constants/remontada-tokens';
+import { CATEGORY_LABELS, SKILL_LABELS } from '@/constants/remontada-labels';
 
-function tomorrowDate() {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
+// Tage als Versatz in Kalendertagen ab heute – vermeidet Zeitzonen-Fallstricke
+// beim Rechtschreiben eines Datums von Hand (siehe Chip-Auswahl unten).
+const DAY_OPTIONS = [
+  { label: 'Heute', offset: 0 },
+  { label: 'Morgen', offset: 1 },
+  { label: 'In 2 Tagen', offset: 2 },
+  { label: 'In 3 Tagen', offset: 3 },
+];
+const TIME_OPTIONS = ['07:00', '08:00', '09:00', '17:00', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
+const SKILL_OPTIONS = ['Beginner', 'Intermediate', 'Advanced'];
 
 export function OnlineCreateMatch() {
   const online = useOnlineData()!;
   const { pendingLocationPick, setPendingLocationPick } = useAppData();
   const [location, setLocation] = useState('');
-  const [date, setDate] = useState(tomorrowDate);
+  const [dayOffset, setDayOffset] = useState(1);
   const [time, setTime] = useState('18:00');
   const [category, setCategory] = useState('Open');
   const [skill, setSkill] = useState('Intermediate');
@@ -34,41 +40,78 @@ export function OnlineCreateMatch() {
     setPendingLocationPick(null);
   }, [pendingLocationPick, setPendingLocationPick]);
 
+  const categoryOptions = ['Open', 'Mixed', online.profile?.gender === 'Male' ? 'Men' : 'Women'];
+
   async function create() {
     if (lock.current) return;
     lock.current = true;
-    setBusy(true); setError(null);
+    setBusy(true);
+    setError(null);
     try {
-      if (!location.trim()) throw new Error('Choose a court or enter a location.');
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) throw new Error('Use YYYY-MM-DD and HH:MM.');
-      const [year, month, day] = date.split('-').map(Number);
+      if (!location.trim()) throw new Error('Wähle einen Platz oder gib einen Ort ein.');
       const [hour, minute] = time.split(':').map(Number);
-      const start = new Date(year, month - 1, day, hour, minute);
-      if (start.getFullYear() !== year || start.getMonth() !== month - 1 || start.getDate() !== day || start.getHours() !== hour || start.getMinutes() !== minute) throw new Error('Choose a valid local date and time.');
-      if (start.getTime() <= Date.now()) throw new Error('Choose a time in the future.');
+      const start = new Date();
+      start.setDate(start.getDate() + dayOffset);
+      start.setHours(hour, minute, 0, 0);
+      if (start.getTime() <= Date.now()) throw new Error('Wähle einen Zeitpunkt in der Zukunft.');
       requestId.current ??= randomUUID();
       const id = await online.createMatch({ location: location.trim(), startsAt: start.toISOString(), category, skill, requestId: requestId.current });
       router.replace({ pathname: '/match-room', params: { id } });
-    } catch (e) { setError(errorMessage(e)); }
-    finally { lock.current = false; setBusy(false); }
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
   }
 
-  return <OnlinePage title="CREATE MATCH">
-    <Text style={s.body}>Create a casual 2v2 match. You join team A as the organizer.</Text>
-    <Text style={s.muted}>Ranked matches and club sessions are not active in the online beta yet.</Text>
-    <Text style={s.heading}>Location</Text>
-    <TextInput accessibilityLabel="Match location" value={location} onChangeText={setLocation} maxLength={120} editable={!busy} placeholder="Court name and meeting point" placeholderTextColor={RColors.text9} style={s.input} />
-    <RButtonOutline label="Choose on map" disabled={busy} onPress={() => router.push({ pathname: '/map', params: { pick: '1' } })} />
-    <Text style={s.heading}>Date and time</Text>
-    <TextInput accessibilityLabel="Date YYYY-MM-DD" value={date} onChangeText={setDate} maxLength={10} editable={!busy} placeholder="YYYY-MM-DD" placeholderTextColor={RColors.text9} style={s.input} />
-    <TextInput accessibilityLabel="Time HH:MM" value={time} onChangeText={setTime} maxLength={5} editable={!busy} placeholder="HH:MM" placeholderTextColor={RColors.text9} style={s.input} />
-    <Text style={s.muted}>Your device&apos;s local time. Other players see the same moment in their own time zone.</Text>
-    <Text style={s.heading}>Category</Text>
-    <View style={s.wrap}>{['Open', 'Mixed', online.profile?.gender === 'Male' ? 'Men' : 'Women'].map((c) => <RChip key={c} label={c} active={category === c} onPress={() => { if (!busy) setCategory(c); }} />)}</View>
-    <Text style={s.heading}>Level</Text>
-    <View style={s.wrap}>{['Beginner', 'Intermediate', 'Advanced'].map((level) => <RChip key={level} label={level} active={skill === level} onPress={() => { if (!busy) setSkill(level); }} />)}</View>
-    {error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
-    <RButton label={busy ? 'Creating…' : 'Create match'} disabled={busy || !location.trim()} onPress={() => void create()} />
-    <RButtonOutline label="Cancel" disabled={busy} onPress={() => router.back()} />
-  </OnlinePage>;
+  return (
+    <OnlinePage title="MATCH ERSTELLEN">
+      <Text style={s.body}>Erstelle ein lockeres 2-gegen-2-Match. Du trittst als Organisator Team A bei.</Text>
+      <Text style={s.muted}>Gewertete Matches und Trainings-Sessions sind in der Online-Beta noch nicht aktiv.</Text>
+
+      <RInput
+        label="Ort"
+        value={location}
+        onChangeText={setLocation}
+        maxLength={120}
+        editable={!busy}
+        placeholder="Platzname und Treffpunkt"
+      />
+      <RButtonOutline label="Auf der Karte wählen" disabled={busy} onPress={() => router.push({ pathname: '/map', params: { pick: '1' } })} />
+
+      <Text style={s.heading}>Tag</Text>
+      <View style={s.wrap}>
+        {DAY_OPTIONS.map((d) => (
+          <RChip key={d.label} label={d.label} active={dayOffset === d.offset} onPress={() => !busy && setDayOffset(d.offset)} />
+        ))}
+      </View>
+
+      <Text style={s.heading}>Uhrzeit</Text>
+      <View style={s.wrap}>
+        {TIME_OPTIONS.map((t) => (
+          <RChip key={t} label={t} active={time === t} onPress={() => !busy && setTime(t)} />
+        ))}
+      </View>
+      <Text style={s.muted}>Uhrzeit in deiner Zeitzone. Andere Spieler sehen denselben Zeitpunkt in ihrer eigenen Zeitzone.</Text>
+
+      <Text style={s.heading}>Kategorie</Text>
+      <View style={s.wrap}>
+        {categoryOptions.map((c) => (
+          <RChip key={c} label={CATEGORY_LABELS[c] ?? c} active={category === c} onPress={() => !busy && setCategory(c)} />
+        ))}
+      </View>
+
+      <Text style={s.heading}>Spielstärke</Text>
+      <View style={s.wrap}>
+        {SKILL_OPTIONS.map((level) => (
+          <RChip key={level} label={SKILL_LABELS[level] ?? level} active={skill === level} onPress={() => !busy && setSkill(level)} />
+        ))}
+      </View>
+
+      {error && <RErrorBanner message={error} />}
+      <RButton label={busy ? 'Wird erstellt…' : 'Match erstellen'} disabled={busy || !location.trim()} onPress={() => void create()} style={{ marginTop: RSpacing.xs }} />
+      <RButtonOutline label="Abbrechen" disabled={busy} onPress={() => router.back()} />
+    </OnlinePage>
+  );
 }

@@ -8,6 +8,10 @@ import { useState } from 'react';
 // Import: wir holen uns vier Bausteine aus der React-Native-Bibliothek.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+// Import: die Remontada-Markenfarben, damit dieser Test-Screen optisch
+// zum Rest der App passt statt fest verdrahtetes Schwarz/Weiß zu nutzen.
+import { RColors } from '@/constants/remontada-colors';
+
 // Konstante: die feste Web-Adresse unseres n8n-Webhooks (Production URL).
 const N8N_WEBHOOK_URL = 'https://jakobus.app.n8n.cloud/webhook/0a9c9144-df7d-4b98-b33b-7495a0457f8e';
 
@@ -86,7 +90,12 @@ export default function DevN8nTestScreen() {
 
       {/* Ein anklickbares Element. onPress={handlePress} -> ruft die
           Funktion handlePress auf, sobald jemand draufdrückt. */}
-      <Pressable style={styles.button} onPress={handlePress}>
+      <Pressable
+        style={styles.button}
+        onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel="Mit n8n verbinden"
+        hitSlop={6}>
         {/* Der sichtbare Text INNERHALB des Buttons */}
         <Text style={styles.buttonText}>Mit n8n verbinden</Text>
       </Pressable>
@@ -124,49 +133,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center', // zentriert Inhalte vertikal
     padding: 24, // Innenabstand zum Rand des Containers, in Pixeln
     gap: 12, // Abstand zwischen den einzelnen Kind-Elementen, in Pixeln
-    backgroundColor: '#000', // explizit Schwarz, unabhängig vom Geräte-Theme
+    backgroundColor: RColors.bgApp, // Remontada-Hintergrund statt festem Schwarz
   },
 
-  // Formatierung für den Titel "WOLKI".
+  // Formatierung für den Titel "Remontada".
   title: {
     fontSize: 32, // Schriftgröße in Pixeln
-    fontWeight: 'bold', // fette Schrift
-    color: '#fff', // Textfarbe Weiß
+    fontFamily: 'Rajdhani_700Bold', // Remontada-Markenschrift für Titel
+    color: RColors.textPrimary, // Remontada-Textfarbe
   },
 
   // Formatierung für den Untertitel "Verbindungstest".
   subtitle: {
     fontSize: 18, // Schriftgröße in Pixeln
     marginBottom: 24, // Abstand nach unten, zum nächsten Element
-    color: '#fff', // Textfarbe Weiß
+    color: RColors.text5, // Remontada-Textfarbe (gedämpft)
   },
 
   // Formatierung für den Button selbst (die anklickbare Fläche).
   button: {
-    backgroundColor: '#1D3D47', // Hintergrundfarbe des Buttons
+    backgroundColor: RColors.accent, // Remontada-Akzentfarbe statt Blau
     paddingVertical: 12, // Innenabstand oben/unten
     paddingHorizontal: 24, // Innenabstand links/rechts
-    borderRadius: 8, // abgerundete Ecken, in Pixeln
+    minHeight: 44, // Mindest-Tapzielgröße
+    alignItems: 'center', // Text im Button zentrieren
+    justifyContent: 'center', // Text im Button zentrieren
   },
 
   // Formatierung für den Text INNERHALB des Buttons.
   buttonText: {
-    color: 'white', // Textfarbe Weiß (Farbname statt Hex-Code, identisch zu '#fff')
+    color: RColors.white, // Textfarbe Weiß
+    fontFamily: 'Rajdhani_700Bold', // Remontada-Markenschrift für Buttons
     fontSize: 16, // Schriftgröße in Pixeln
+    textTransform: 'uppercase', // wie die übrigen Remontada-Buttons
   },
 
   // Formatierung für die Beschriftungen "Status:" und "Antwort:".
   label: {
     marginTop: 24, // Abstand nach oben, zum vorherigen Element
     fontSize: 14, // Schriftgröße in Pixeln
-    color: '#aaa', // helleres Grau, gut lesbar auf Schwarz
+    color: RColors.text9, // helleres Grau, gut lesbar auf Schwarz
   },
 
   // Formatierung für die eigentlichen Werte (Status-Text, Antwort-Text).
   status: {
     fontSize: 18, // Schriftgröße in Pixeln
     fontWeight: '600', // etwas fettere Schrift
-    color: '#fff', // Textfarbe Weiß
+    color: RColors.textPrimary, // Remontada-Textfarbe
   },
   // Ende von StyleSheet.create
 });

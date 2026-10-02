@@ -66,6 +66,18 @@ export const RColors = {
   shopGradBottom: '#cc2a1b',
 
   white: '#ffffff',
+
+  // Semantische Rollen – ein Name pro Bedeutung, damit Screens nicht direkt
+  // "win"/"lossRed" usw. für UI-Zustände zweckentfremden. Zeigen bewusst auf
+  // dieselben Werte wie oben, nur mit sprechendem Namen für den Aufrufer.
+  success: '#54b05a',
+  danger: '#d55753',
+  warning: '#dca331',
+  info: '#65c6e4',
+  disabledBg: '#20252a',
+  disabledText: '#6c7278',
+  focusRing: '#e9504d',
+  overlay: 'rgba(5,8,10,0.75)',
 } as const;
 
 export type RColorName = keyof typeof RColors;

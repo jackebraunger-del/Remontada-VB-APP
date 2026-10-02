@@ -1,12 +1,11 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RCard, RScreen } from '@/components/remontada/primitives';
+import { RCard, RHeader, RScreen } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
 
 const TIERS = [
@@ -15,28 +14,28 @@ const TIERS = [
     color: RColors.bronze,
     range: '1000 – 1199',
     icon: 'shield-outline' as const,
-    blurb: 'Everyone starts here. Play matches to climb.',
+    blurb: 'Hier startet jeder. Spiele Matches, um aufzusteigen.',
   },
   {
     name: 'Silver',
     color: RColors.text3,
     range: '1200 – 1499',
     icon: 'shield-half-full' as const,
-    blurb: 'You know your way around the court.',
+    blurb: 'Du kennst dich auf dem Feld schon aus.',
   },
   {
     name: 'Gold',
     color: RColors.gold,
     range: '1500 – 1799',
     icon: 'shield' as const,
-    blurb: 'Solid, consistent play — most club players never see higher.',
+    blurb: 'Solide, konstante Leistung — die meisten Vereinsspieler kommen nie höher.',
   },
   {
     name: 'Diamond',
     color: RColors.diamondBlue,
     range: '1800+',
     icon: 'shield-star' as const,
-    blurb: 'The top of the club ladder.',
+    blurb: 'Die Spitze der Vereins-Rangliste.',
   },
 ];
 
@@ -65,11 +64,11 @@ function TierRow({ tier, index, isCurrent }: { tier: (typeof TIERS)[number]; ind
             <Text style={[styles.tierName, { color: tier.color }]}>{tier.name}</Text>
             {isCurrent && (
               <View style={[styles.currentTag, { backgroundColor: withAlpha(tier.color, 0.25) }]}>
-                <Text style={[styles.currentTagText, { color: tier.color }]}>You are here</Text>
+                <Text style={[styles.currentTagText, { color: tier.color }]}>Du bist hier</Text>
               </View>
             )}
           </View>
-          <Text style={styles.tierRange}>{tier.range} rating</Text>
+          <Text style={styles.tierRange}>{tier.range} Wertung</Text>
           <Text style={styles.tierBlurb}>{tier.blurb}</Text>
         </View>
       </RCard>
@@ -84,15 +83,9 @@ export default function RankTiersScreen() {
   return (
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 24, gap: 16 }}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Ionicons name="chevron-back" size={22} color={RColors.text2} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Rank Tiers</Text>
-          <View style={{ width: 22 }} />
-        </View>
+        <RHeader title="Rang-Stufen" />
 
-        <Text style={styles.subtitle}>Four tiers, from Bronze to Diamond. Win matches to climb, in any category.</Text>
+        <Text style={styles.subtitle}>Vier Stufen, von Bronze bis Diamond. Gewinne Matches, um in jeder Kategorie aufzusteigen.</Text>
 
         <View style={{ gap: 12 }}>
           {TIERS.slice()

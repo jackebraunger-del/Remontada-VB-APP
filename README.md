@@ -2,7 +2,7 @@
 
 ## Remontada Online-Beta
 
-Anmeldung, gemeinsame Matches und Ergebnisbestätigung sind für Supabase vorbereitet.
+Google-Anmeldung mit PKCE, gemeinsame Matches und Ergebnisbestätigung sind für Supabase vorbereitet.
 Die Einrichtung steht in [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 Ohne Konfiguration erscheint ein Einrichtungshinweis. Die bisherige lokale Demo
 ist mit `EXPO_PUBLIC_DEMO_MODE=true` weiterhin verfügbar und lädt keine Daten hoch.
@@ -11,26 +11,23 @@ Prüfungen: `npm run typecheck`, `npm run lint`, `npm run test:database`.
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## Lokal starten (Windows)
 
-1. Install dependencies
+1. Abhängigkeiten nach einem neuen Clone einmal installieren:
 
-   ```bash
-   npm install
+   ```powershell
+   npm.cmd install
    ```
 
-2. Start the app
+2. Den Entwicklungsserver für die installierte Remontada-Test-App starten:
 
-   ```bash
-   npx expo start
+   ```powershell
+   npx.cmd expo start --dev-client
    ```
 
-In the output, you'll find options to open the app in a
+`npm.cmd` und `npx.cmd` funktionieren auch dann, wenn Windows die PowerShell-Dateien `npm.ps1` und `npx.ps1` blockiert. Dafür muss die PowerShell Execution Policy nicht geändert werden.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Für den Browser kann im laufenden Terminal `w` gedrückt werden. Google OAuth auf einem echten Handy muss mit dem [Development Build](https://docs.expo.dev/develop/development-builds/introduction/) getestet werden. Expo Go kann unter SDK 54 das benötigte Projektschema `wolki://` nicht registrieren und ist deshalb für diese Anmeldung ungeeignet.
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 

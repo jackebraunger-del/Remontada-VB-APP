@@ -1,18 +1,18 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useOnlineData } from '@/lib/online-context';
 import { OnlineMatchRoom } from '@/components/remontada/OnlineMatchRoom';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RButton, RButtonOutline, RCard, RChip, RScreen, RTag } from '@/components/remontada/primitives';
+import { RButton, RButtonOutline, RCard, RChip, RHeader, RInput, RScreen, RTag } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
 import { useAppData } from '@/lib/remontada-context';
 import { RECENT_RESULT } from '@/lib/remontada-mock-data';
 
-const REPORT_REASONS = ['Wrong score', 'Player didn’t show up', 'Suspected cheating', 'Other'];
+const REPORT_REASONS = ['Falscher Spielstand', 'Spieler nicht erschienen', 'Betrugsverdacht', 'Sonstiges'];
 
 export default function MatchRoomScreen() {
   const online = useOnlineData();
@@ -38,32 +38,27 @@ function DemoMatchRoomScreen() {
   function onSubmitReport() {
     setSupportVisible(false);
     setNote('');
-    Alert.alert('Report sent', 'Thanks — our team will take a look at this match.');
+    Alert.alert('Meldung gesendet', 'Danke — unser Team schaut sich dieses Match an.');
   }
 
   return (
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 32, gap: 18 }}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Ionicons name="chevron-back" size={20} color={RColors.text2} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Match Room</Text>
-          <View style={{ flexDirection: 'row', gap: 14 }}>
-            <Ionicons name="heart-outline" size={18} color={RColors.text5} />
-            <Ionicons name="chatbubble-outline" size={18} color={RColors.text5} />
-            <Pressable hitSlop={10} onPress={() => setSupportVisible(true)}>
+        <RHeader
+          title="Match-Raum"
+          right={
+            <Pressable hitSlop={10} onPress={() => setSupportVisible(true)} accessibilityRole="button" accessibilityLabel="Problem melden">
               <Ionicons name="flag-outline" size={18} color={RColors.text5} />
             </Pressable>
-          </View>
-        </View>
+          }
+        />
 
         <View style={{ gap: 4 }}>
-          <Text style={styles.locationTitle}>Las Canteras · Court 4</Text>
+          <Text style={styles.locationTitle}>Las Canteras · Feld 4</Text>
           <View style={styles.tagRow}>
-            <RTag label="Intermediate" color={RColors.text3} bg={RColors.chip3} />
+            <RTag label="Fortgeschritten" color={RColors.text3} bg={RColors.chip3} />
             <RTag label="Mixed" color={RColors.text3} bg={RColors.chip3} />
-            <RTag label="Ranked" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />
+            <RTag label="Gewertet" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />
           </View>
         </View>
 
@@ -75,7 +70,7 @@ function DemoMatchRoomScreen() {
                 Jakob <Text style={{ color: RColors.gold, fontSize: 11 }}>Gold</Text>
               </Text>
               <Text style={styles.playerName}>
-                Maria <Text style={{ color: RColors.text3, fontSize: 11 }}>Silver</Text>
+                Maria <Text style={{ color: RColors.text3, fontSize: 11 }}>Silber</Text>
               </Text>
             </View>
             <Text style={styles.vs}>VS</Text>
@@ -96,12 +91,12 @@ function DemoMatchRoomScreen() {
             <Text style={styles.setScore}>15–12</Text>
           </View>
 
-          <Text style={styles.winnerText}>Team A Wins</Text>
+          <Text style={styles.winnerText}>Team A gewinnt</Text>
         </RCard>
 
         <View style={styles.verifiedRow}>
           <MaterialCommunityIcons name="check-decagram" size={16} color={RColors.diamondBlue} />
-          <Text style={styles.verifiedText}>Verified Match</Text>
+          <Text style={styles.verifiedText}>Bestätigtes Match</Text>
           <View style={{ flex: 1 }} />
           {RECENT_RESULT.ratingDeltas.map((d) => (
             <Text key={d.name} style={styles.deltaText}>
@@ -110,14 +105,14 @@ function DemoMatchRoomScreen() {
           ))}
         </View>
 
-        <Pressable onPress={onViewReward}>
+        <Pressable onPress={onViewReward} accessibilityRole="button" accessibilityLabel={dailyRewardClaimedToday ? 'Tages-Belohnung bereits abgeholt' : 'Tages-Belohnung ansehen'}>
           <RCard borderColor={withAlpha(RColors.amberIcon, 0.5)} contentStyle={styles.rewardRow}>
             <MaterialCommunityIcons name="gift-outline" size={22} color={RColors.amberIcon} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.rewardTitle}>{dailyRewardClaimedToday ? 'Daily Reward Claimed' : 'Daily Reward Unlocked'}</Text>
-              <Text style={styles.mutedTiny}>1 per day · today&apos;s win counts</Text>
+              <Text style={styles.rewardTitle}>{dailyRewardClaimedToday ? 'Tages-Belohnung abgeholt' : 'Tages-Belohnung freigeschaltet'}</Text>
+              <Text style={styles.mutedTiny}>1 pro Tag · der heutige Sieg zählt</Text>
             </View>
-            <Text style={styles.viewLabel}>View</Text>
+            <Text style={styles.viewLabel}>Ansehen</Text>
           </RCard>
         </Pressable>
 
@@ -134,41 +129,38 @@ function DemoMatchRoomScreen() {
           </View>
           <RCard contentStyle={{ padding: 14, gap: 8 }}>
             <Text style={styles.comment}>
-              <Text style={{ fontWeight: '700' }}>Carlos:</Text> <Text style={{ color: RColors.text3 }}>&quot;Great game!&quot;</Text>
+              <Text style={{ fontWeight: '700' }}>Carlos:</Text> <Text style={{ color: RColors.text3 }}>„Tolles Spiel!“</Text>
             </Text>
             <Text style={styles.comment}>
-              <Text style={{ fontWeight: '700' }}>Maria:</Text> <Text style={{ color: RColors.text3 }}>&quot;Rematch tomorrow?&quot;</Text>
+              <Text style={{ fontWeight: '700' }}>Maria:</Text> <Text style={{ color: RColors.text3 }}>„Revanche morgen?“</Text>
             </Text>
           </RCard>
         </View>
 
-        <RButton label="Rematch" />
-        <RButtonOutline label="Report an Issue" onPress={() => setSupportVisible(true)} />
+        <RButton label="Revanche" />
+        <RButtonOutline label="Problem melden" onPress={() => setSupportVisible(true)} />
       </ScrollView>
 
       <Modal visible={supportVisible} transparent animationType="fade" onRequestClose={() => setSupportVisible(false)}>
         <View style={styles.modalBackdrop}>
           <RCard style={{ width: '100%' }} contentStyle={{ padding: 20, gap: 14 }}>
-            <Text style={styles.modalTitle}>Report an Issue</Text>
-            <Text style={styles.mutedTiny}>Wrong score, a no-show, or something that felt off — let us know.</Text>
+            <Text style={styles.modalTitle}>Problem melden</Text>
+            <Text style={styles.mutedTiny}>Falscher Spielstand, jemand nicht erschienen, oder etwas anderes hat nicht gepasst — sag uns Bescheid.</Text>
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
               {REPORT_REASONS.map((r) => (
                 <RChip key={r} label={r} active={reason === r} onPress={() => setReason(r)} />
               ))}
             </View>
-            <RCard contentStyle={{ paddingHorizontal: 4 }}>
-              <TextInput
-                value={note}
-                onChangeText={setNote}
-                placeholder="Add details (optional)"
-                placeholderTextColor={RColors.text9}
-                style={styles.modalInput}
-                multiline
-              />
-            </RCard>
+            <RInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="Details hinzufügen (optional)"
+              multiline
+              style={{ minHeight: 60, textAlignVertical: 'top' }}
+            />
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <RButtonOutline label="Cancel" style={{ flex: 1 }} onPress={() => setSupportVisible(false)} />
-              <RButton label="Send Report" style={{ flex: 1 }} onPress={onSubmitReport} />
+              <RButtonOutline label="Abbrechen" style={{ flex: 1 }} onPress={() => setSupportVisible(false)} />
+              <RButton label="Meldung senden" style={{ flex: 1 }} onPress={onSubmitReport} />
             </View>
           </RCard>
         </View>
@@ -178,8 +170,6 @@ function DemoMatchRoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 13, letterSpacing: 1.4, textTransform: 'uppercase', color: RColors.text7 },
   locationTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 19, color: RColors.textPrimary },
   tagRow: { flexDirection: 'row', gap: 6 },
   teamLabel: { fontFamily: 'Rajdhani_700Bold', fontSize: 12, letterSpacing: 0.8, textTransform: 'uppercase' },

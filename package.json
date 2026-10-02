@@ -10,6 +10,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test:database": "node --test tests/database.test.mjs",
+    "test:understanding": "node --test tests/crafted-understanding.test.mjs tests/understanding.test.mjs",
+    "test": "node --test",
+    "export:understanding": "node ./scripts/export-crafted-understanding.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -25,6 +28,7 @@
     "expo-auth-session": "~7.0.11",
     "expo-constants": "~18.0.13",
     "expo-crypto": "~15.0.9",
+    "expo-dev-client": "~6.0.21",
     "expo-font": "~14.0.12",
     "expo-haptics": "~15.0.8",
     "expo-image": "~3.0.11",

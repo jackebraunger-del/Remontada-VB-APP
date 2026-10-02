@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RButton, RCard, RScreen } from '@/components/remontada/primitives';
 import { RColors } from '@/constants/remontada-colors';
+import { CATEGORY_LABELS } from '@/constants/remontada-labels';
 import { useAppData } from '@/lib/remontada-context';
 
 const CATEGORIES = ['Men', 'Women', 'Open', 'Mixed'];
@@ -33,24 +34,26 @@ function DemoRankingScreen() {
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingHorizontal: 20, paddingBottom: 24, gap: 16 }}>
         <View style={styles.rowBetween}>
-          <Text style={styles.title}>RANKING</Text>
-          <RButton small label="Play a Match" onPress={() => router.push('/create-match')} />
+          <Text style={styles.title}>RANGLISTE</Text>
+          <RButton small label="Match spielen" onPress={() => router.push('/create-match')} />
         </View>
 
-        <View style={styles.categoryRow}>
+        <View style={styles.categoryRow} accessibilityRole="tablist">
           {CATEGORIES.map((c) => (
             <Text
               key={c}
               onPress={() => setCategory(c)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: category === c }}
               style={[styles.categoryTab, category === c && styles.categoryTabActive]}>
-              {c}
+              {CATEGORY_LABELS[c] ?? c}
             </Text>
           ))}
         </View>
 
         <View style={styles.rowBetween}>
           <Text style={styles.mutedSmall}>Las Canteras ▾</Text>
-          <Text style={styles.linkText}>Change scope</Text>
+          <Text style={styles.linkText} accessibilityRole="button">Bereich ändern</Text>
         </View>
 
         {you && (
@@ -59,10 +62,10 @@ function DemoRankingScreen() {
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={styles.youTitle}>{you.skillTier}</Text>
               <Text style={styles.mutedSmall}>
-                Rating {you.rating} · #{you.rank} Las Canteras
+                Wertung {you.rating} · #{you.rank} Las Canteras
               </Text>
             </View>
-            <Text style={styles.youLabel}>You</Text>
+            <Text style={styles.youLabel}>Du</Text>
           </RCard>
         )}
 
@@ -70,14 +73,14 @@ function DemoRankingScreen() {
           {leaderboard.map((entry) => (
             <View key={entry.rank} style={[styles.row, entry.isYou && styles.rowYou, !entry.isYou && styles.rowDivider]}>
               <View style={styles.rankCell}>
-                {entry.rank === 1 && <MaterialCommunityIcons name="crown" size={14} color={RColors.gold} style={{ marginBottom: 1 }} />}
+                {entry.rank === 1 && <MaterialCommunityIcons name="crown" size={14} color={RColors.gold} style={{ marginBottom: 1 }} accessibilityLabel="Platz 1" />}
                 <Text style={[styles.rankNumber, { color: RANK_COLORS[entry.rank] ?? RColors.text5 }]}>{entry.rank}</Text>
               </View>
               <View style={styles.avatar} />
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                   <Text style={[styles.name, entry.isYou && { fontWeight: '700' }]}>{entry.name}</Text>
-                  {entry.verified && <MaterialCommunityIcons name="check-decagram" size={13} color={RColors.diamondBlue} />}
+                  {entry.verified && <MaterialCommunityIcons name="check-decagram" size={13} color={RColors.diamondBlue} accessibilityLabel="Verifiziert" />}
                 </View>
                 <Text style={styles.mutedSmall}>{entry.skillTier}</Text>
               </View>

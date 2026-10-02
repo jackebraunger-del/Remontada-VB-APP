@@ -51,7 +51,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Start',
           tabBarIcon: ({ color, focused }) => (
             <TabIconFrame focused={focused}>
               <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
@@ -62,7 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="map"
         options={{
-          title: 'Map',
+          title: 'Karte',
           tabBarIcon: ({ color, focused }) => (
             <TabIconFrame focused={focused}>
               <Ionicons name={focused ? 'map' : 'map-outline'} size={22} color={color} />
@@ -73,7 +73,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="play"
         options={{
-          title: 'Play',
+          title: 'Spielen',
           tabBarIcon: ({ color, focused }) => (
             <TabIconFrame focused={focused}>
               <MaterialCommunityIcons name="volleyball" size={23} color={color} />
@@ -84,7 +84,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ranking"
         options={{
-          title: 'Ranking',
+          title: 'Rangliste',
           tabBarIcon: ({ color, focused }) => (
             <TabIconFrame focused={focused}>
               <Ionicons name={focused ? 'podium' : 'podium-outline'} size={22} color={color} />
@@ -95,7 +95,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Profil',
           tabBarIcon: ({ color, focused }) => (
             <TabIconFrame focused={focused}>
               <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={23} color={color} />

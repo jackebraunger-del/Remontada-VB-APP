@@ -1,12 +1,11 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RCard, RScreen } from '@/components/remontada/primitives';
+import { RCard, RHeader, REmptyState, RScreen } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { CATEGORY_LABELS, SKILL_LABELS } from '@/constants/remontada-labels';
 import { PLACEMENT_MATCHES_REQUIRED, useAppData } from '@/lib/remontada-context';
 import { PreferredSide } from '@/lib/remontada-types';
 
@@ -30,48 +29,39 @@ export default function StatsScreen() {
   return (
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 24, gap: 18 }}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Ionicons name="chevron-back" size={22} color={RColors.text2} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Your Stats</Text>
-          <View style={{ width: 22 }} />
-        </View>
+        <RHeader title="Deine Statistiken" />
 
         {best ? (
           <RCard borderColor={withAlpha(RColors.diamondBlue, 0.5)} contentStyle={{ padding: 16, gap: 4 }}>
             <View style={styles.rowStart}>
               <MaterialCommunityIcons name="star-four-points" size={16} color={RColors.diamondBlue} />
-              <Text style={styles.bestLabel}>Strongest Category</Text>
+              <Text style={styles.bestLabel}>Stärkste Kategorie</Text>
             </View>
-            <Text style={styles.bestValue}>{best.category}</Text>
+            <Text style={styles.bestValue}>{CATEGORY_LABELS[best.category] ?? best.category}</Text>
             <Text style={styles.mutedSmall}>
-              {best.wins}-{best.losses} · {Math.round((best.wins / best.matches) * 100)}% win rate
+              {best.wins}-{best.losses} · {Math.round((best.wins / best.matches) * 100)}% Sieg-Quote
             </Text>
           </RCard>
         ) : (
-          <RCard contentStyle={{ padding: 16, alignItems: 'center', gap: 4 }}>
-            <Text style={styles.bestValue}>No matches yet</Text>
-            <Text style={styles.mutedSmall}>Play a few matches to see where you&apos;re strongest.</Text>
-          </RCard>
+          <REmptyState title="Noch keine Matches" description="Spiele ein paar Matches, um zu sehen, wo du am stärksten bist." />
         )}
 
         <View style={{ gap: 10 }}>
-          <Text style={styles.sectionTitle}>By Category</Text>
+          <Text style={styles.sectionTitle}>Nach Kategorie</Text>
           {categoryRatings.map((c) => {
             const winRate = c.matches > 0 ? Math.round((c.wins / c.matches) * 100) : 0;
             const inPlacement = c.matches < PLACEMENT_MATCHES_REQUIRED;
             return (
               <RCard key={c.category} contentStyle={{ padding: 16, gap: 10 }}>
                 <View style={styles.rowBetween}>
-                  <Text style={styles.categoryName}>{c.category}</Text>
+                  <Text style={styles.categoryName}>{CATEGORY_LABELS[c.category] ?? c.category}</Text>
                   {inPlacement ? (
                     <Text style={[styles.categoryTier, { color: RColors.text5 }]}>
-                      Placement {c.matches}/{PLACEMENT_MATCHES_REQUIRED}
+                      Einstufung {c.matches}/{PLACEMENT_MATCHES_REQUIRED}
                     </Text>
                   ) : (
                     <Text style={[styles.categoryTier, { color: TIER_COLOR[c.tier] }]}>
-                      {c.skill} {c.tier}
+                      {SKILL_LABELS[c.skill] ?? c.skill} {c.tier}
                     </Text>
                   )}
                 </View>
@@ -80,15 +70,15 @@ export default function StatsScreen() {
                 </View>
                 <View style={styles.rowBetween}>
                   <Text style={styles.mutedSmall}>
-                    {c.matches} matches · {c.wins}W {c.losses}L
+                    {c.matches} Matches · {c.wins}S {c.losses}N
                   </Text>
-                  <Text style={styles.mutedSmall}>{winRate}% win rate</Text>
+                  <Text style={styles.mutedSmall}>{winRate}% Sieg-Quote</Text>
                 </View>
                 {inPlacement ? (
-                  <Text style={styles.mutedSmall}>Play {PLACEMENT_MATCHES_REQUIRED - c.matches} more to unlock your rank.</Text>
+                  <Text style={styles.mutedSmall}>Spiele noch {PLACEMENT_MATCHES_REQUIRED - c.matches}, um deinen Rang freizuschalten.</Text>
                 ) : (
                   <Text style={styles.mutedSmall}>
-                    Rating {c.rating} · Club rank {c.clubRank > 0 ? `#${c.clubRank}` : '—'}
+                    Wertung {c.rating} · Vereins-Rang {c.clubRank > 0 ? `#${c.clubRank}` : '—'}
                   </Text>
                 )}
               </RCard>
@@ -97,22 +87,22 @@ export default function StatsScreen() {
         </View>
 
         <View style={{ gap: 10 }}>
-          <Text style={styles.sectionTitle}>Preferred Side</Text>
+          <Text style={styles.sectionTitle}>Bevorzugte Seite</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <SideOption
-              label="Left"
+              label="Links"
               icon="arrow-left-bold"
               active={preferredSide === 'Left'}
               onPress={() => setPreferredSide('Left' as PreferredSide)}
             />
             <SideOption
-              label="Right"
+              label="Rechts"
               icon="arrow-right-bold"
               active={preferredSide === 'Right'}
               onPress={() => setPreferredSide('Right' as PreferredSide)}
             />
           </View>
-          <Text style={styles.mutedSmall}>Helps teammates know how to line up before a match.</Text>
+          <Text style={styles.mutedSmall}>Hilft Teamkollegen, sich vor dem Match richtig aufzustellen.</Text>
         </View>
       </ScrollView>
     </RScreen>
@@ -131,7 +121,7 @@ function SideOption({
   onPress: () => void;
 }) {
   return (
-    <Pressable style={{ flex: 1 }} onPress={onPress}>
+    <Pressable style={{ flex: 1 }} onPress={onPress} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ selected: active }}>
       <RCard
         borderColor={active ? RColors.accent : RColors.cardBorder}
         contentStyle={[styles.sideOption, active && { backgroundColor: withAlpha(RColors.accent, 0.16) }]}>

@@ -53,8 +53,12 @@ function DemoHomeScreen() {
               <CoinIcon size={14} />
               <Text style={styles.coinText}>{coins}</Text>
             </View>
-            <Ionicons name="notifications-outline" size={20} color={RColors.text5} />
-            <Pressable hitSlop={10} onPress={() => router.push('/locker')}>
+            <Ionicons name="notifications-outline" size={20} color={RColors.text5} accessibilityLabel="Benachrichtigungen" />
+            <Pressable
+              hitSlop={10}
+              onPress={() => router.push('/locker')}
+              accessibilityRole="button"
+              accessibilityLabel="Spind öffnen">
               <View style={styles.avatarSmall} />
             </Pressable>
           </View>
@@ -62,7 +66,7 @@ function DemoHomeScreen() {
 
         <RCard contentStyle={{ padding: 18, gap: 12 }}>
           <View style={styles.rankHeaderRow}>
-            <Text style={styles.eyebrow}>Your Rank · Open</Text>
+            <Text style={styles.eyebrow}>Dein Rang · Offen</Text>
             <Text style={[styles.ratingValue, { color: RColors.diamondBlue }]}>{openRank.rating}</Text>
           </View>
           <View style={styles.rankRow}>
@@ -75,11 +79,14 @@ function DemoHomeScreen() {
             <View style={styles.progressTrack}>
               <Animated.View style={[styles.progressFill, { backgroundColor: RColors.diamondBlue }, barStyle]} />
             </View>
-            <Text style={styles.mutedSmall}>Keep playing to climb the leaderboard</Text>
+            <Text style={styles.mutedSmall}>Spiele weiter, um in der Rangliste aufzusteigen.</Text>
           </View>
         </RCard>
 
-        <Pressable onPress={onDailyRewardPress}>
+        <Pressable
+          onPress={onDailyRewardPress}
+          accessibilityRole="button"
+          accessibilityLabel={dailyRewardClaimedToday ? 'Tages-Belohnung bereits abgeholt' : 'Tages-Belohnung freischalten'}>
           <RCard contentStyle={styles.dailyRewardRow}>
             <View style={styles.giftGlowWrap}>
               <View style={styles.giftGlow} />
@@ -87,10 +94,10 @@ function DemoHomeScreen() {
             </View>
             <Text style={styles.dailyRewardText}>
               {dailyRewardClaimedToday ? (
-                'Daily Reward claimed — see you tomorrow'
+                'Tages-Belohnung abgeholt — bis morgen'
               ) : (
                 <>
-                  Win a match today to unlock your <Text style={{ fontWeight: '700', color: RColors.white }}>Daily Reward</Text>
+                  Gewinne heute ein Match, um deine <Text style={{ fontWeight: '700', color: RColors.white }}>Tages-Belohnung</Text> freizuschalten
                 </>
               )}
             </Text>
@@ -100,14 +107,16 @@ function DemoHomeScreen() {
 
         <View style={{ gap: 12 }}>
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Open Matches Nearby</Text>
-            <Text style={styles.linkText}>See all</Text>
+            <Text style={styles.sectionTitle}>Offene Matches in der Nähe</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Alle Matches anzeigen" onPress={() => router.push('/play')} hitSlop={6}>
+              <Text style={styles.linkText}>Alle anzeigen</Text>
+            </Pressable>
           </View>
 
           {openMatches.length === 0 && (
             <RCard contentStyle={{ padding: 20, alignItems: 'center', gap: 6 }}>
-              <Text style={styles.emptyTitle}>No open matches yet</Text>
-              <Text style={styles.mutedSmall}>Be the first to create one below.</Text>
+              <Text style={styles.emptyTitle}>Noch keine offenen Matches</Text>
+              <Text style={styles.mutedSmall}>Erstelle das erste Match weiter unten.</Text>
             </RCard>
           )}
 
@@ -121,14 +130,14 @@ function DemoHomeScreen() {
                 {match.tags.map((t) => (
                   <RTag key={t} label={t} color={RColors.text3} bg={RColors.chip3} />
                 ))}
-                {match.ranked && <RTag label="Ranked" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />}
+                {match.ranked && <RTag label="Gewertet" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />}
               </View>
               <View style={styles.matchBottomRow}>
                 <Text style={styles.mutedSmall}>
-                  {match.playersJoined}/{match.playersJoined + match.playersNeeded} players
-                  {match.needsWoman ? ' · 1 woman needed' : ` · ${match.playersNeeded} needed`}
+                  {match.playersJoined}/{match.playersJoined + match.playersNeeded} Spieler
+                  {match.needsWoman ? ' · noch 1 Frau gesucht' : ` · noch ${match.playersNeeded} gesucht`}
                 </Text>
-                <RButton label="Join" onPress={() => router.push('/match-room')} />
+                <RButton label="Beitreten" onPress={() => router.push('/match-room')} />
               </View>
             </RCard>
           ))}
@@ -136,11 +145,11 @@ function DemoHomeScreen() {
 
         {recentResult && (
           <View style={{ gap: 10 }}>
-            <Text style={styles.sectionTitle}>Recent Result</Text>
-            <Pressable onPress={() => router.push('/match-room')}>
+            <Text style={styles.sectionTitle}>Letztes Ergebnis</Text>
+            <Pressable onPress={() => router.push('/match-room')} accessibilityRole="button" accessibilityLabel="Letztes Ergebnis ansehen">
               <RCard contentStyle={{ padding: 16, gap: 8 }}>
                 <Text style={styles.resultTitle}>
-                  {recentResult.teamA.join(' & ')} defeated {recentResult.teamB.join(' & ')}
+                  {recentResult.teamA.join(' & ')} gewann gegen {recentResult.teamB.join(' & ')}
                 </Text>
                 <Text style={styles.resultSets}>{recentResult.sets}</Text>
                 <View style={styles.matchBottomRow}>
@@ -159,8 +168,8 @@ function DemoHomeScreen() {
         )}
       </ScrollView>
 
-      <View style={[styles.createMatchWrap, { bottom: 78 }]}>
-        <RButton label="+ Create Match" style={{ width: '100%' }} onPress={() => router.push('/create-match')} />
+      <View style={styles.createMatchBar}>
+        <RButton label="+ Match erstellen" style={{ width: '100%' }} onPress={() => router.push('/create-match')} />
       </View>
     </RScreen>
   );
@@ -205,5 +214,12 @@ const styles = StyleSheet.create({
   resultTitle: { fontSize: 14, fontWeight: '600', color: RColors.textPrimary },
   resultSets: { fontFamily: 'Rajdhani_600SemiBold', fontSize: 15, color: RColors.win },
   deltaText: { fontSize: 11, fontWeight: '700', color: RColors.win },
-  createMatchWrap: { position: 'absolute', left: 20, right: 20 },
+  createMatchBar: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 14,
+    borderTopWidth: 1,
+    borderTopColor: RColors.divider,
+    backgroundColor: RColors.bgApp,
+  },
 });

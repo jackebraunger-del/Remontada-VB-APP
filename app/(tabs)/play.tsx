@@ -9,8 +9,9 @@ import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CutCornerView } from '@/components/remontada/CutCorner';
-import { RButton, RButtonOutline, RCard, RChip, RScreen, RTag } from '@/components/remontada/primitives';
+import { RButton, RButtonOutline, RCard, RChip, REmptyState, RScreen, RTag } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { CATEGORY_LABELS } from '@/constants/remontada-labels';
 import { useAppData } from '@/lib/remontada-context';
 
 const FILTERS = ['All', 'Men', 'Women', 'Mixed'];
@@ -39,27 +40,33 @@ function DemoPlayScreen() {
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingHorizontal: 20, paddingBottom: 24, gap: 16 }}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>PLAY</Text>
+          <Text style={styles.title}>SPIELEN</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <Pressable hitSlop={10} onPress={() => router.push('/report-result')} style={styles.reportRow}>
+            <Pressable
+              hitSlop={10}
+              onPress={() => router.push('/report-result')}
+              style={styles.reportRow}
+              accessibilityRole="button"
+              accessibilityLabel="Ergebnis melden">
               <MaterialCommunityIcons name="clipboard-check-outline" size={19} color={RColors.text3} />
-              <Text style={styles.reportLabel}>Report Result</Text>
+              <Text style={styles.reportLabel}>Ergebnis melden</Text>
             </Pressable>
-            <Ionicons name="options-outline" size={20} color={RColors.text5} />
+            <Ionicons name="options-outline" size={20} color={RColors.text5} accessibilityLabel="Filter" />
           </View>
         </View>
 
-        <View style={styles.filterRow}>
+        <View style={styles.filterRow} accessibilityRole="tablist">
           {FILTERS.map((f) => (
-            <RChip key={f} label={f} active={filter === f} onPress={() => setFilter(f)} />
+            <RChip key={f} label={CATEGORY_LABELS[f] ?? f} accessibilityLabel={`Filter ${CATEGORY_LABELS[f] ?? f}`} active={filter === f} onPress={() => setFilter(f)} />
           ))}
         </View>
 
         {matches.length === 0 && (
-          <RCard contentStyle={{ padding: 20, alignItems: 'center', gap: 6 }}>
-            <Text style={styles.matchLocation}>No open matches yet</Text>
-            <Text style={styles.mutedSmall}>Tap the + button to create the first one.</Text>
-          </RCard>
+          <REmptyState
+            icon="tennisball-outline"
+            title="Noch keine offenen Matches"
+            description="Tippe auf den +-Button, um das erste Match zu erstellen."
+          />
         )}
 
         <View style={{ gap: 12 }}>
@@ -73,17 +80,17 @@ function DemoPlayScreen() {
                 {match.tags.map((t) => (
                   <RTag key={t} label={t} color={RColors.text3} bg={RColors.chip3} />
                 ))}
-                {match.ranked && <RTag label="Ranked" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />}
+                {match.ranked && <RTag label="Gewertet" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />}
               </View>
               <View style={styles.rowBetween}>
                 <Text style={styles.mutedSmall}>
                   {match.playersJoined}/{match.playersJoined + match.playersNeeded}
-                  {match.needsWoman ? ' · 1 woman needed' : ` · ${match.playersNeeded} needed`}
+                  {match.needsWoman ? ' · noch 1 Frau gesucht' : ` · noch ${match.playersNeeded} gesucht`}
                 </Text>
                 {match.faded ? (
-                  <RButtonOutline label="Join" onPress={() => router.push('/match-room')} />
+                  <RButtonOutline label="Beitreten" onPress={() => router.push('/match-room')} />
                 ) : (
-                  <RButton label="Join" onPress={() => router.push('/match-room')} />
+                  <RButton label="Beitreten" onPress={() => router.push('/match-room')} />
                 )}
               </View>
             </RCard>
@@ -93,7 +100,11 @@ function DemoPlayScreen() {
 
       <View style={[styles.fabWrap, { bottom: 22 }]}>
         <Animated.View style={[styles.fabGlow, pulseStyle]} />
-        <Pressable onPress={() => router.push('/create-match')} hitSlop={8}>
+        <Pressable
+          onPress={() => router.push('/create-match')}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Match erstellen">
           <CutCornerView
             cut={12}
             backgroundColor={RColors.accent}

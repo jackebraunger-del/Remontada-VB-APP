@@ -26,13 +26,13 @@ export default function RewardScreen() {
   return (
     <RScreen style={{ paddingTop: insets.top + 10 }}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Daily Reward</Text>
+        <Text style={styles.headerTitle}>Tages-Belohnung</Text>
       </View>
 
       <View style={styles.subRow}>
         <Text style={styles.subText}>
-          You won as <Text style={{ color: RColors.win, fontWeight: '600' }}>Team A</Text> · Ranked ·{' '}
-          <Text style={{ color: RColors.win, fontWeight: '600' }}>+24 Rating</Text>
+          Du hast als <Text style={{ color: RColors.win, fontWeight: '600' }}>Team A</Text> gewonnen · Gewertet ·{' '}
+          <Text style={{ color: RColors.win, fontWeight: '600' }}>+24 Wertung</Text>
         </Text>
       </View>
 
@@ -43,13 +43,13 @@ export default function RewardScreen() {
         </Animated.View>
         <View style={{ alignItems: 'center', gap: 6 }}>
           <Text style={styles.amount}>+{lastRewardCoins || 95} Coins</Text>
-          <Text style={styles.caption}>Added to your balance · 1 reward per day</Text>
+          <Text style={styles.caption}>Deinem Guthaben hinzugefügt · 1 Belohnung pro Tag</Text>
         </View>
-        <Text style={styles.hint}>Small chance of a skin instead — save up coins and get one from the Shop.</Text>
+        <Text style={styles.hint}>Kleine Chance auf einen Skin statt Coins — sammle Coins und hol dir einen im Shop.</Text>
       </View>
 
       <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 20 }}>
-        <RButton label="Continue" style={{ width: '100%' }} onPress={() => router.back()} />
+        <RButton label="Weiter" style={{ width: '100%' }} onPress={() => router.back()} />
       </View>
     </RScreen>
   );

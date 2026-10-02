@@ -1,12 +1,11 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CoinIcon, FrameRing } from '@/components/remontada/icons';
-import { RCard, RScreen, RTile } from '@/components/remontada/primitives';
+import { RCard, RHeader, RScreen, RTile } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { RARITY_LABELS, SKIN_KIND_LABELS } from '@/constants/remontada-labels';
 import { useAppData } from '@/lib/remontada-context';
 
 const TABS = ['Avatar Frames', 'Card Themes', 'Badge Styles'];
@@ -28,43 +27,49 @@ export default function ShopScreen() {
   function onBuy(id: string, name: string, price?: number) {
     if (!price) return;
     const ok = buySkin(id);
-    Alert.alert(ok ? 'Gekauft!' : 'Nicht genug Coins', ok ? `${name} ist jetzt in deinem Locker.` : `Du brauchst noch mehr Coins für ${name}.`);
+    Alert.alert(ok ? 'Gekauft!' : 'Nicht genug Coins', ok ? `${name} ist jetzt in deinem Spind.` : `Du brauchst noch mehr Coins für ${name}.`);
   }
 
   return (
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 24, gap: 16 }}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Ionicons name="chevron-back" size={20} color={RColors.text2} />
-          </Pressable>
-          <Text style={styles.title}>SHOP</Text>
-          <View style={styles.coinBadge}>
-            <CoinIcon size={16} />
-            <Text style={styles.coinText}>{coins}</Text>
-          </View>
-        </View>
+        <RHeader
+          title="Shop"
+          right={
+            <View style={styles.coinBadge}>
+              <CoinIcon size={16} />
+              <Text style={styles.coinText}>{coins}</Text>
+            </View>
+          }
+        />
 
         <RCard borderColor={withAlpha(RColors.legendaryRed, 0.5)} contentStyle={styles.featuredRow}>
           <FrameRing size={52} gradientFrom={featured.gradientFrom} gradientTo={featured.gradientTo} spin={!featured.owned} />
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={styles.featuredEyebrow}>Featured This Week</Text>
+            <Text style={styles.featuredEyebrow}>Diese Woche im Fokus</Text>
             <Text style={styles.featuredName}>{featured.name}</Text>
-            <Text style={[styles.rarityText, { color: RColors.legendaryRed }]}>Legendary · Avatar Frame</Text>
+            <Text style={[styles.rarityText, { color: RColors.legendaryRed }]}>Legendär · Rahmen</Text>
           </View>
           <Pressable
             style={styles.buyBtnSm}
             onPress={() => onBuy(featured.id, featured.name, featured.priceCoins)}
-            disabled={featured.owned}>
+            disabled={featured.owned}
+            accessibilityRole="button"
+            accessibilityLabel={featured.owned ? `${featured.name} bereits freigeschaltet` : `${featured.name} für ${featured.priceCoins} Coins kaufen`}>
             <CoinIcon size={13} />
-            <Text style={styles.buyPriceSm}>{featured.owned ? 'Owned' : featured.priceCoins}</Text>
+            <Text style={styles.buyPriceSm}>{featured.owned ? 'Freigeschaltet' : featured.priceCoins}</Text>
           </Pressable>
         </RCard>
 
-        <View style={styles.tabRow}>
+        <View style={styles.tabRow} accessibilityRole="tablist">
           {TABS.map((t) => (
-            <Text key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabActive]}>
-              {t}
+            <Text
+              key={t}
+              onPress={() => setTab(t)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: tab === t }}
+              style={[styles.tab, tab === t && styles.tabActive]}>
+              {SKIN_KIND_LABELS[t] ?? t}
             </Text>
           ))}
         </View>
@@ -86,13 +91,17 @@ export default function ShopScreen() {
               contentStyle={styles.tileContent}>
               <FrameRing size={46} gradientFrom={skin.gradientFrom} gradientTo={skin.gradientTo} spin={false} />
               <Text style={styles.skinName}>{skin.name}</Text>
-              <Text style={[styles.rarityText, { color: RARITY_COLOR[skin.rarity] }]}>{skin.rarity}</Text>
+              <Text style={[styles.rarityText, { color: RARITY_COLOR[skin.rarity] }]}>{RARITY_LABELS[skin.rarity] ?? skin.rarity}</Text>
               {skin.owned ? (
-                <Text style={styles.ownedText}>Owned</Text>
+                <Text style={styles.ownedText}>Freigeschaltet</Text>
               ) : skin.seasonOnly ? (
-                <Text style={styles.seasonText}>Season Reward</Text>
+                <Text style={styles.seasonText}>Saison-Belohnung</Text>
               ) : (
-                <Pressable style={styles.priceChip} onPress={() => onBuy(skin.id, skin.name, skin.priceCoins)}>
+                <Pressable
+                  style={styles.priceChip}
+                  onPress={() => onBuy(skin.id, skin.name, skin.priceCoins)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${skin.name} für ${skin.priceCoins} Coins kaufen`}>
                   <CoinIcon size={12} />
                   <Text style={styles.priceText}>{skin.priceCoins}</Text>
                 </Pressable>
@@ -102,11 +111,11 @@ export default function ShopScreen() {
         </View>
 
         <Text style={styles.footerNote}>
-          Coins come from your Daily Reward or from topping up. A share of every purchase goes back into local courts
-          and community tournaments.
+          Coins bekommst du über deine Tages-Belohnung oder durch Aufladen. Ein Teil jedes Kaufs fließt zurück in lokale
+          Spielfelder und Community-Turniere.
         </Text>
-        <Text style={styles.getCoins} onPress={() => Alert.alert('Get Coins', 'Coins aufladen kommt bald.')}>
-          Get Coins
+        <Text style={styles.getCoins} onPress={() => Alert.alert('Coins kaufen', 'Coins-Aufladung kommt bald.')}>
+          Coins kaufen
         </Text>
       </ScrollView>
     </RScreen>

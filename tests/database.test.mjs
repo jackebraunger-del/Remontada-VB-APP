@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 import { PGlite } from '@electric-sql/pglite';
 
@@ -18,7 +18,11 @@ test('shared volleyball database security and lifecycle', async (t) => {
         'select nullif(current_setting(''request.jwt.claim.sub'', true), '''')::uuid';
       grant usage on schema auth, public to anon, authenticated;
     `);
-    await db.exec(await readFile(new URL('../supabase/migrations/202608310001_shared_volleyball.sql', import.meta.url), 'utf8'));
+    const migrationDirectory = new URL('../supabase/migrations/', import.meta.url);
+    const migrationFiles = (await readdir(migrationDirectory)).filter((name) => name.endsWith('.sql')).sort();
+    for (const migrationFile of migrationFiles) {
+      await db.exec(await readFile(new URL(migrationFile, migrationDirectory), 'utf8'));
+    }
     const users = Array.from({ length: 6 }, () => randomUUID());
     for (let i = 0; i < users.length; i++) {
       await db.query('insert into auth.users(id) values ($1)', [users[i]]);
@@ -37,6 +41,8 @@ test('shared volleyball database security and lifecycle', async (t) => {
       return id;
     };
     const join = (user, id, team) => as(user, 'select public.join_match($1, $2::smallint)', [id, team]);
+    const createCourt = (user, name = 'Test Court', lat = 28, lng = -15, id = randomUUID()) =>
+      as(user, 'select public.create_court($1, $2, $3, $4)', [name, lat, lng, id]);
     const report = (user, id, team = 1, score = '21-18, 21-19') => as(user, 'select public.report_result($1, $2::smallint, $3)', [id, team, score]);
     const result = async (id) => (await db.query('select * from public.match_results where match_id = $1', [id])).rows[0];
     const review = (user, id, confirm, stamp) => as(user, 'select public.review_result($1, $2, $3)', [id, confirm, stamp]);
@@ -62,14 +68,24 @@ test('shared volleyball database security and lifecycle', async (t) => {
       assert.equal((await as(a, 'select * from public.match_members where match_id = $1', [id])).rows.length, 1);
       await assert.rejects(as(a, "select public.create_match('Court', now() - interval '1 hour', 'Open', 'Intermediate', $1)", [randomUUID()]), /future/);
       await assert.rejects(create(a, 'Women'), /category/);
-      await assert.rejects(create(a, 'Not a category'), /check constraint/);
+      await assert.rejects(create(a, 'Not a category'), /valid category/);
     });
     await t.test('direct writes cannot bypass the transactional match rules', async () => {
       const id = await create();
       await assert.rejects(as(a, 'insert into public.match_members(match_id, user_id, team) values ($1, $2, 2)', [id, outsider]), /permission denied/);
       await assert.rejects(as(a, "update public.matches set status = 'completed' where id = $1", [id]), /permission denied/);
       await assert.rejects(as(a, "insert into public.match_results(match_id, reporter_id, winning_team, score) values ($1, $2, 1, 'fake')", [id, a]), /permission denied/);
-      await assert.rejects(as(a, "insert into public.courts(created_by, name, lat, lng) values ($1, 'Forged Court', 28, -15)", [b]), /row-level security/);
+      await assert.rejects(as(a, "insert into public.courts(created_by, name, lat, lng) values ($1, 'Forged Court', 28, -15)", [b]), /permission denied|row-level security/);
+    });
+    await t.test('court creation is validated, idempotent and cannot be bypassed directly', async () => {
+      const id = randomUUID();
+      await createCourt(a, '  Central Court  ', 28, -15, id);
+      await createCourt(a, 'Central Court', 28, -15, id);
+      const stored = await as(a, 'select * from public.courts where id = $1', [id]);
+      assert.equal(stored.rows.length, 1);
+      assert.equal(stored.rows[0].name, 'Central Court');
+      await assert.rejects(createCourt(a, 'Invalid', 91, -15), /coordinates/);
+      await assert.rejects(as(a, "insert into public.courts(created_by, name, lat, lng) values ($1, 'Direct Court', 28, -15)", [a]), /permission denied/);
     });
     await t.test('joins are idempotent and capacity is enforced per team', async () => {
       const id = await create();
@@ -96,6 +112,9 @@ test('shared volleyball database security and lifecycle', async (t) => {
     await t.test('opposing team confirms, locks membership, and makes the result immutable', async () => {
       const id = await create();
       await join(b, id, 1); await join(c, id, 2); await join(d, id, 2); await start(id);
+      await assert.rejects(report(a, id, 1, '21-18'), /two or three sets/);
+      await assert.rejects(report(a, id, 1, '21-21, 21-19'), /cannot be tied/);
+      await assert.rejects(report(a, id, 1, '18-21, 19-21'), /does not match/);
       await report(a, id); await report(a, id);
       const stamp = (await result(id)).reported_at;
       await assert.rejects(review(a, id, true, stamp), /opposing team/);
@@ -130,6 +149,24 @@ test('shared volleyball database security and lifecycle', async (t) => {
       await as(a, 'select public.cancel_match($1)', [id]);
       await as(a, 'select public.cancel_match($1)', [id]);
       await assert.rejects(join(b, id, 1), /no longer accepting/);
+    });
+    await t.test('match creation is rate limited without breaking idempotent retries', async () => {
+      const ids = [];
+      for (let i = 0; i < 10; i++) ids.push(await create(extra));
+      await create(extra, 'Open', ids[0]);
+      await assert.rejects(create(extra), /Too many matches/);
+    });
+    await t.test('account deletion requires confirmation, deletes only the caller and removes dependent public data', async () => {
+      const courtId = randomUUID();
+      await createCourt(extra, 'Private Court', 28, -15, courtId);
+      await assert.rejects(as(null, "select public.delete_my_account('DELETE')"), /permission denied/);
+      await assert.rejects(as(extra, "select public.delete_my_account('NO')"), /not confirmed/);
+      await as(extra, "select public.delete_my_account('DELETE')");
+      assert.equal((await db.query('select * from auth.users where id = $1', [extra])).rows.length, 0);
+      assert.equal((await db.query('select * from public.profiles where id = $1', [extra])).rows.length, 0);
+      assert.equal((await db.query('select * from public.matches where creator_id = $1', [extra])).rows.length, 0);
+      assert.equal((await db.query('select * from public.courts where id = $1', [courtId])).rows.length, 0);
+      assert.equal((await db.query('select * from auth.users where id = $1', [b])).rows.length, 1);
     });
   } finally { await db.close(); }
 });

@@ -1,14 +1,14 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Reanimated, { useAnimatedStyle, useSharedValue, withDecay } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { CoinIcon, FrameRing } from '@/components/remontada/icons';
-import { RCard, RScreen, RTag, RTile } from '@/components/remontada/primitives';
+import { FrameRing } from '@/components/remontada/icons';
+import { RCard, RHeader, RScreen, RTag, RTile } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { RARITY_LABELS, SKIN_KIND_LABELS } from '@/constants/remontada-labels';
 import { useAppData } from '@/lib/remontada-context';
 import { Skin } from '@/lib/remontada-types';
 
@@ -60,13 +60,7 @@ export default function LockerScreen() {
   return (
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 24, gap: 18 }}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Ionicons name="chevron-back" size={20} color={RColors.text2} />
-          </Pressable>
-          <Text style={styles.title}>LOCKER</Text>
-          <RTag label="Season 1" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />
-        </View>
+        <RHeader title="Spind" right={<RTag label="Saison 1" color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />} />
 
         <RCard contentStyle={styles.equippedRow}>
           <GestureDetector gesture={dragGesture}>
@@ -75,24 +69,34 @@ export default function LockerScreen() {
             </Reanimated.View>
           </GestureDetector>
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={styles.eyebrow}>Equipped Frame</Text>
+            <Text style={styles.eyebrow}>Aktiver Rahmen</Text>
             <Text style={styles.equippedName}>{equipped.name}</Text>
-            <Text style={[styles.rarityText, { color: RARITY_COLOR[equipped.rarity] }]}>{equipped.rarity}</Text>
-            <Text style={styles.dragHint}>Swipe the ring to spin it</Text>
+            <Text style={[styles.rarityText, { color: RARITY_COLOR[equipped.rarity] }]}>{RARITY_LABELS[equipped.rarity] ?? equipped.rarity}</Text>
+            <Text style={styles.dragHint}>Wische den Ring, um ihn zu drehen</Text>
           </View>
         </RCard>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroll} contentContainerStyle={styles.tabRow}>
           {TABS.map((t) => (
-            <Text key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabActive]}>
-              {t}
+            <Text
+              key={t}
+              onPress={() => setTab(t)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: tab === t }}
+              style={[styles.tab, tab === t && styles.tabActive]}>
+              {SKIN_KIND_LABELS[t] ?? t}
             </Text>
           ))}
         </ScrollView>
 
         <View style={styles.grid}>
           {frames.map((skin) => (
-            <Pressable key={skin.id} style={styles.gridItem} onPress={() => onTilePress(skin)}>
+            <Pressable
+              key={skin.id}
+              style={styles.gridItem}
+              onPress={() => onTilePress(skin)}
+              accessibilityRole="button"
+              accessibilityLabel={skin.owned ? skin.name : `${skin.name}, gesperrt`}>
               <RTile
                 borderColor={
                   skin.rarity === 'Epic'
@@ -106,8 +110,8 @@ export default function LockerScreen() {
                 contentStyle={[styles.tileContent, !skin.owned && { opacity: 0.55 }]}>
                 <FrameRing size={50} gradientFrom={skin.gradientFrom} gradientTo={skin.gradientTo} spin={skin.owned} />
                 <Text style={styles.skinName}>{skin.name}</Text>
-                <Text style={[styles.rarityText, { color: RARITY_COLOR[skin.rarity] }]}>{skin.rarity}</Text>
-                {skin.equipped && <Text style={styles.equippedBadge}>Equipped</Text>}
+                <Text style={[styles.rarityText, { color: RARITY_COLOR[skin.rarity] }]}>{RARITY_LABELS[skin.rarity] ?? skin.rarity}</Text>
+                {skin.equipped && <Text style={styles.equippedBadge}>Aktiv</Text>}
               </RTile>
               {skin.owned && !skin.equipped && (
                 <View style={styles.ownedBadge}>
@@ -115,17 +119,8 @@ export default function LockerScreen() {
                 </View>
               )}
               {!skin.owned && (
-                <View style={styles.lockOverlay}>
-                  <Ionicons name="lock-closed-outline" size={15} color={RColors.text2} />
-                  {skin.achievementLabel && <Text style={styles.lockText}>{skin.achievementLabel}</Text>}
-                  {skin.priceCoins && (
-                    <View style={styles.priceRow}>
-                      {skin.achievementLabel && <Text style={styles.orText}>or</Text>}
-                      <CoinIcon size={10} />
-                      <Text style={styles.priceText}>{skin.priceCoins}</Text>
-                    </View>
-                  )}
-                  {skin.seasonOnly && <Text style={styles.lockText}>Season Reward</Text>}
+                <View style={styles.lockBadge}>
+                  <Ionicons name="lock-closed-outline" size={11} color={RColors.text3} />
                 </View>
               )}
             </Pressable>
@@ -172,19 +167,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  lockOverlay: {
+  lockBadge: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 8,
+    right: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(8,10,12,0.75)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(8,10,12,0.55)',
   },
-  lockText: { fontSize: 8, fontWeight: '600', color: RColors.text5, textAlign: 'center' },
-  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  orText: { fontSize: 8, color: RColors.text9 },
-  priceText: { fontSize: 9, fontWeight: '700', color: RColors.text2 },
 });

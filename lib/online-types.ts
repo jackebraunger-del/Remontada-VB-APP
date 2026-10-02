@@ -38,3 +38,9 @@ export interface CreateOnlineMatch {
   skill: string;
   requestId: string;
 }
+
+export interface UpdateOnlineProfile {
+  displayName: string;
+  gender: Gender;
+  preferredSide: PreferredSide | null;
+}

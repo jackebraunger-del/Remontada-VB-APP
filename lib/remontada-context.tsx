@@ -16,6 +16,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { StyleSheet, View } from 'react-native';
 
 import { RColors } from '@/constants/remontada-colors';
+import { CATEGORY_LABELS, SKILL_LABELS } from '@/constants/remontada-labels';
 import {
   CATEGORY_RATINGS,
   LEADERBOARD,
@@ -419,7 +420,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       id: `m${matchIdCounter}`,
       location: input.location,
       timeLabel: input.timeLabel,
-      tags: ['2v2', input.category, input.skill],
+      tags: ['2 gegen 2', CATEGORY_LABELS[input.category] ?? input.category, SKILL_LABELS[input.skill] ?? input.skill],
       ranked: input.ranked,
       playersJoined: 1,
       playersNeeded: 3,
@@ -487,7 +488,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     // Frischer, zum Geschlecht passender Kategorie-Start (0 Matches, Beginner) –
     // damit z.B. eine Spielerin nie einen "Men"-Rang bekommt.
     setCategoryRatings(zeroCategoryRatingsFor(selectedGender));
-    setLeaderboard([{ rank: 1, name: trimmed, skillTier: 'Beginner Bronze', rating: 1000, isYou: true }]);
+    setLeaderboard([{ rank: 1, name: trimmed, skillTier: 'Anfänger Bronze', rating: 1000, isYou: true }]);
     setOnboardingComplete(true);
   }, []);
 

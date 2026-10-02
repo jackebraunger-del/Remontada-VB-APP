@@ -2,15 +2,21 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { Linking, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { LatLng, LongPressEvent, Marker, Region } from 'react-native-maps';
 
-import { RButton, RButtonOutline, RCard, RScreen, RSheet, RTag } from '@/components/remontada/primitives';
+import { RButton, RButtonOutline, RCard, RErrorBanner, RInput, RScreen, RSheet, RTag } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
 import { useAppData } from '@/lib/remontada-context';
 import { useOnlineData } from '@/lib/online-context';
 import { errorMessage } from '@/lib/supabase';
+
+function matchCountLabel(n: number) {
+  if (n === 0) return 'Keine offenen Matches';
+  if (n === 1) return '1 offenes Match';
+  return `${n} offene Matches`;
+}
 
 interface CourtLocation {
   id: string;
@@ -143,15 +149,15 @@ export default function MapScreen() {
 
       {pickMode ? (
         <View style={[styles.pickBar, { top: insets.top + 12 }]}>
-          <Pressable hitSlop={10} onPress={() => router.back()} style={styles.pickBackBtn}>
+          <Pressable hitSlop={10} onPress={() => router.back()} style={styles.pickBackBtn} accessibilityRole="button" accessibilityLabel="Zurück">
             <Ionicons name="chevron-back" size={18} color={RColors.text2} />
           </Pressable>
-          <Text style={styles.searchText}>Tap a court to pick it · long-press to mark a new one</Text>
+          <Text style={styles.searchText}>Tippe auf ein Feld, um es zu wählen · lange drücken für einen neuen Ort</Text>
         </View>
       ) : (
         <View style={[styles.searchBar, { top: insets.top + 12 }]} pointerEvents="none">
           <Ionicons name="search" size={17} color={RColors.text7} />
-          <Text style={styles.searchText}>Tap a pin · long-press to mark your own court</Text>
+          <Text style={styles.searchText}>Tippe auf eine Markierung · lange drücken für einen eigenen Platz</Text>
         </View>
       )}
 
@@ -161,7 +167,7 @@ export default function MapScreen() {
 
           <View style={styles.rowBetween}>
             <Text style={styles.sheetTitle}>{selected.name}</Text>
-            <Pressable hitSlop={10} onPress={() => setSelected(null)}>
+            <Pressable hitSlop={10} onPress={() => setSelected(null)} accessibilityRole="button" accessibilityLabel="Schließen">
               <Ionicons name="close" size={18} color={RColors.text7} />
             </Pressable>
           </View>
@@ -169,32 +175,28 @@ export default function MapScreen() {
           {!selected.custom && !online && (
             <>
               <View style={styles.rowBetween}>
-                <RTag
-                  label={`${selected.openMatches} Open Match${selected.openMatches === 1 ? '' : 'es'}`}
-                  color={RColors.rareOrange}
-                  bg={withAlpha(RColors.accent, 0.3)}
-                />
+                <RTag label={matchCountLabel(selected.openMatches)} color={RColors.rareOrange} bg={withAlpha(RColors.accent, 0.3)} />
               </View>
               <RCard contentStyle={styles.statsRow}>
-                <Stat value={String(selected.checkedIn)} label="Checked In" color={RColors.win} />
-                <Stat value={String(selected.intermediate)} label="Intermediate" />
-                <Stat value={String(selected.advanced)} label="Advanced" />
+                <Stat value={String(selected.checkedIn)} label="Vor Ort" color={RColors.win} />
+                <Stat value={String(selected.intermediate)} label="Fortg." />
+                <Stat value={String(selected.advanced)} label="Erfahren" />
               </RCard>
             </>
           )}
-          {selected.custom && <Text style={styles.mutedSmall}>Community-marked spot.</Text>}
+          {selected.custom && <Text style={styles.mutedSmall}>Von der Community markierter Ort.</Text>}
 
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <RButton label="Get Directions" style={{ flex: 1 }} onPress={() => Linking.openURL(directionsUrl(selected))} />
-            <RButtonOutline label="Open in Maps" style={{ flex: 1 }} onPress={() => Linking.openURL(viewUrl(selected))} />
+            <RButton label="Route anzeigen" style={{ flex: 1 }} onPress={() => Linking.openURL(directionsUrl(selected))} />
+            <RButtonOutline label="In Maps öffnen" style={{ flex: 1 }} onPress={() => Linking.openURL(viewUrl(selected))} />
           </View>
 
           {selected.hasSession && hasActiveSession && (
-            <Pressable onPress={() => router.push('/session')}>
+            <Pressable onPress={() => router.push('/session')} accessibilityRole="button" accessibilityLabel="Vereinstreffen öffnen">
               <RCard borderColor={withAlpha(RColors.rareOrange, 0.4)} contentStyle={styles.sessionRow}>
                 <Ionicons name="calendar-outline" size={18} color={RColors.rareOrange} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.sessionTitle}>Club Session</Text>
+                  <Text style={styles.sessionTitle}>Vereinstreffen</Text>
                   <Text style={styles.mutedSmall}>{selected.name} Community</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={RColors.text9} />
@@ -207,21 +209,24 @@ export default function MapScreen() {
       <Modal visible={pendingPin !== null} transparent animationType="fade" onRequestClose={() => setPendingPin(null)}>
         <View style={styles.modalBackdrop}>
           <RCard style={{ width: '100%' }} contentStyle={{ padding: 20, gap: 14 }}>
-            <Text style={styles.modalTitle}>Name this court</Text>
-            <TextInput
+            <Text style={styles.modalTitle}>Gib diesem Platz einen Namen</Text>
+            <RInput
               value={newCourtName}
               maxLength={120}
               editable={!savingCourt}
               onChangeText={setNewCourtName}
-              placeholder="e.g. Playa de Amadores"
-              placeholderTextColor={RColors.text9}
-              style={styles.modalInput}
+              placeholder="z.B. Playa de Amadores"
               autoFocus
             />
-            {courtError && <Text accessibilityRole="alert" style={{ color: RColors.lossRed }}>{courtError}</Text>}
+            {courtError && <RErrorBanner message={courtError} />}
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <RButtonOutline label="Cancel" style={{ flex: 1 }} disabled={savingCourt} onPress={() => setPendingPin(null)} />
-              <RButton label={savingCourt ? 'Saving…' : pickMode ? 'Add & Pick' : 'Add'} style={{ flex: 1 }} onPress={() => void confirmNewCourt()} disabled={savingCourt || !newCourtName.trim()} />
+              <RButtonOutline label="Abbrechen" style={{ flex: 1 }} disabled={savingCourt} onPress={() => setPendingPin(null)} />
+              <RButton
+                label={savingCourt ? 'Wird gespeichert…' : pickMode ? 'Hinzufügen & wählen' : 'Hinzufügen'}
+                style={{ flex: 1 }}
+                onPress={() => void confirmNewCourt()}
+                disabled={savingCourt || !newCourtName.trim()}
+              />
             </View>
           </RCard>
         </View>

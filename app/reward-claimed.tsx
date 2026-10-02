@@ -14,32 +14,32 @@ export default function RewardClaimedScreen() {
   return (
     <RScreen style={{ paddingTop: insets.top + 10 }}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={10}>
+        <Pressable onPress={() => router.back()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Schließen">
           <Ionicons name="close" size={18} color={RColors.text7} />
         </Pressable>
-        <Text style={styles.headerTitle}>Daily Reward</Text>
+        <Text style={styles.headerTitle}>Tages-Belohnung</Text>
         <View style={{ width: 18 }} />
       </View>
 
       <View style={styles.subRow}>
         <Text style={styles.subText}>
-          You won as <Text style={{ color: RColors.win, fontWeight: '600' }}>Team A</Text> · Ranked ·{' '}
-          <Text style={{ color: RColors.win, fontWeight: '600' }}>+19 Rating</Text>
+          Du hast als <Text style={{ color: RColors.win, fontWeight: '600' }}>Team A</Text> gewonnen · Gewertet ·{' '}
+          <Text style={{ color: RColors.win, fontWeight: '600' }}>+19 Wertung</Text>
         </Text>
       </View>
 
       <View style={styles.center}>
         <MaterialCommunityIcons name="gift-outline" size={34} color={RColors.text9} style={{ opacity: 0.4 }} />
         <View style={{ alignItems: 'center', gap: 6 }}>
-          <Text style={styles.claimedTitle}>Daily Reward Claimed</Text>
-          <Text style={styles.caption}>You already claimed today&apos;s reward. One per day, resets at midnight.</Text>
-          <Text style={styles.countdown}>14h 22m</Text>
-          <Text style={styles.countdownLabel}>Until next reward</Text>
+          <Text style={styles.claimedTitle}>Tages-Belohnung abgeholt</Text>
+          <Text style={styles.caption}>Du hast die heutige Belohnung bereits abgeholt. Eine pro Tag, Reset um Mitternacht.</Text>
+          <Text style={styles.countdown}>14 Std 22 Min</Text>
+          <Text style={styles.countdownLabel}>Bis zur nächsten Belohnung</Text>
         </View>
       </View>
 
-      <Text style={styles.backLink} onPress={() => router.back()}>
-        Back to Match Room
+      <Text style={styles.backLink} onPress={() => router.back()} accessibilityRole="button">
+        Zurück zum Match-Raum
       </Text>
     </RScreen>
   );

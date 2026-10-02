@@ -7,21 +7,22 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RButton, RCard, RChip, RScreen } from '@/components/remontada/primitives';
+import { RButton, RCard, RChip, RHeader, RScreen } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { CATEGORY_LABELS, SKILL_LABELS } from '@/constants/remontada-labels';
 import { useAppData } from '@/lib/remontada-context';
 
 const CATEGORIES = ['Men', 'Women', 'Mixed', 'Open'];
 const SKILLS = ['Beginner', 'Intermediate', 'Advanced'];
-const DAYS = ['Today', 'Tomorrow', 'In 2 days', 'In 3 days'];
+const DAYS = ['Heute', 'Morgen', 'In 2 Tagen', 'In 3 Tagen'];
 const TIMES = ['07:00', '08:00', '09:00', '17:00', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
 
 type MatchType = 'Unranked' | 'Ranked' | 'Club';
 
 const MATCH_TYPES: { key: MatchType; title: string; blurb: string; icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'] }[] = [
-  { key: 'Unranked', title: 'Unranked', blurb: 'Just for fun, no rating change.', icon: 'volleyball' },
-  { key: 'Ranked', title: 'Ranked', blurb: 'Counts toward your category rank.', icon: 'trophy-outline' },
-  { key: 'Club', title: 'Club', blurb: 'Open to everyone — a public club session.', icon: 'account-group-outline' },
+  { key: 'Unranked', title: 'Ohne Wertung', blurb: 'Nur zum Spaß, keine Auswirkung auf deine Wertung.', icon: 'volleyball' },
+  { key: 'Ranked', title: 'Gewertet', blurb: 'Zählt für deinen Kategorie-Rang.', icon: 'trophy-outline' },
+  { key: 'Club', title: 'Vereinstreffen', blurb: 'Offen für alle — ein öffentliches Vereinstreffen.', icon: 'account-group-outline' },
 ];
 
 export default function CreateMatchScreen() {
@@ -70,18 +71,17 @@ function DemoCreateMatchScreen() {
   return (
     <RScreen>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 32, gap: 20 }}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Ionicons name="chevron-back" size={22} color={RColors.text2} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Create Match</Text>
-          <View style={{ width: 22 }} />
-        </View>
+        <RHeader title="Match erstellen" />
 
         <View style={{ gap: 10 }}>
-          <Text style={styles.label}>Play</Text>
+          <Text style={styles.label}>Spielart</Text>
           {MATCH_TYPES.map((mt) => (
-            <Pressable key={mt.key} onPress={() => setMatchType(mt.key)}>
+            <Pressable
+              key={mt.key}
+              onPress={() => setMatchType(mt.key)}
+              accessibilityRole="radio"
+              accessibilityLabel={mt.title}
+              accessibilityState={{ selected: matchType === mt.key }}>
               <RCard
                 borderColor={matchType === mt.key ? RColors.accent : RColors.cardBorder}
                 contentStyle={[styles.matchTypeRow, matchType === mt.key && { backgroundColor: withAlpha(RColors.accent, 0.12) }]}>
@@ -103,20 +103,23 @@ function DemoCreateMatchScreen() {
         {matchType !== 'Club' && (
           <>
             <View style={{ gap: 8 }}>
-              <Text style={styles.label}>Location</Text>
-              <Pressable onPress={() => router.push({ pathname: '/map', params: { pick: '1' } })}>
+              <Text style={styles.label}>Ort</Text>
+              <Pressable
+                onPress={() => router.push({ pathname: '/map', params: { pick: '1' } })}
+                accessibilityRole="button"
+                accessibilityLabel={locationName ? `Ort ändern, aktuell ${locationName}` : 'Ort auf der Karte wählen'}>
                 <RCard contentStyle={styles.locationRow}>
                   <Ionicons name="location-outline" size={18} color={locationName ? RColors.accent : RColors.text9} />
                   <Text style={[styles.locationText, !locationName && { color: RColors.text9 }]} numberOfLines={1}>
-                    {locationName || 'Choose on map'}
+                    {locationName || 'Auf der Karte wählen'}
                   </Text>
-                  <Text style={styles.linkText}>{locationName ? 'Change' : 'Pick'}</Text>
+                  <Text style={styles.linkText}>{locationName ? 'Ändern' : 'Wählen'}</Text>
                 </RCard>
               </Pressable>
             </View>
 
             <View style={{ gap: 8 }}>
-              <Text style={styles.label}>Day</Text>
+              <Text style={styles.label}>Tag</Text>
               <View style={styles.chipWrap}>
                 {DAYS.map((d) => (
                   <RChip key={d} label={d} active={day === d} onPress={() => setDay(d)} />
@@ -125,7 +128,7 @@ function DemoCreateMatchScreen() {
             </View>
 
             <View style={{ gap: 8 }}>
-              <Text style={styles.label}>Time</Text>
+              <Text style={styles.label}>Uhrzeit</Text>
               <View style={styles.chipWrap}>
                 {TIMES.map((t) => (
                   <RChip key={t} label={t} active={time === t} onPress={() => setTime(t)} />
@@ -134,19 +137,19 @@ function DemoCreateMatchScreen() {
             </View>
 
             <View style={{ gap: 8 }}>
-              <Text style={styles.label}>Category</Text>
+              <Text style={styles.label}>Kategorie</Text>
               <View style={styles.chipWrap}>
                 {CATEGORIES.map((c) => (
-                  <RChip key={c} label={c} active={category === c} onPress={() => setCategory(c)} />
+                  <RChip key={c} label={CATEGORY_LABELS[c]} active={category === c} onPress={() => setCategory(c)} />
                 ))}
               </View>
             </View>
 
             <View style={{ gap: 8 }}>
-              <Text style={styles.label}>Skill Level</Text>
+              <Text style={styles.label}>Spielstärke</Text>
               <View style={styles.chipWrap}>
-                {SKILLS.map((s) => (
-                  <RChip key={s} label={s} active={skill === s} onPress={() => setSkill(s)} />
+                {SKILLS.map((sk) => (
+                  <RChip key={sk} label={SKILL_LABELS[sk]} active={skill === sk} onPress={() => setSkill(sk)} />
                 ))}
               </View>
             </View>
@@ -155,13 +158,13 @@ function DemoCreateMatchScreen() {
 
         {matchType === 'Club' && (
           <RCard contentStyle={{ padding: 16, gap: 4 }}>
-            <Text style={styles.matchTypeTitle}>Opens the Club Session</Text>
-            <Text style={styles.mutedSmall}>A public, organized meetup — who brings a net, who brings a ball, and where to play. Anyone can join, and ranked games can start spontaneously once you&apos;re there.</Text>
+            <Text style={styles.matchTypeTitle}>Öffnet das Vereinstreffen</Text>
+            <Text style={styles.mutedSmall}>Ein öffentliches, organisiertes Treffen — wer bringt ein Netz, wer bringt einen Ball, und wo wird gespielt. Jeder kann beitreten, und gewertete Matches können spontan starten, sobald ihr vor Ort seid.</Text>
           </RCard>
         )}
 
         <RButton
-          label={matchType === 'Club' ? 'Open Club Session' : 'Create Match'}
+          label={matchType === 'Club' ? 'Vereinstreffen öffnen' : 'Match erstellen'}
           onPress={onSubmit}
           disabled={!canSubmit}
           style={{ marginTop: 4 }}
@@ -172,8 +175,6 @@ function DemoCreateMatchScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 16, letterSpacing: 0.6, textTransform: 'uppercase', color: RColors.textPrimary },
   label: { fontSize: 11, fontWeight: '600', letterSpacing: 0.6, textTransform: 'uppercase', color: RColors.text9 },
   matchTypeRow: { padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
   matchTypeTitle: { fontSize: 15, fontWeight: '700', color: RColors.text3 },

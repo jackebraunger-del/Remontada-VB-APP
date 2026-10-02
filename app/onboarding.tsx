@@ -1,16 +1,18 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RButton, RCard, RScreen } from '@/components/remontada/primitives';
+import { RButton, RButtonOutline, RCard, RErrorBanner, RInput, RScreen } from '@/components/remontada/primitives';
 import { RColors, withAlpha } from '@/constants/remontada-colors';
+import { RSize, RSpacing } from '@/constants/remontada-tokens';
 import { useAppData } from '@/lib/remontada-context';
 import { Gender } from '@/lib/remontada-types';
 import { demoMode, errorMessage } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 
+// Einmaliger Profil-Schritt nach dem Anmelden. Der geschützte Navigator öffnet
+// die restliche App erst, sobald das Profil gespeichert ist.
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { completeOnboarding } = useAppData();
@@ -29,7 +31,6 @@ export default function OnboardingScreen() {
     setError(null);
     try {
       await completeOnboarding(name, gender);
-      // The protected navigator opens the app only after the profile was saved.
     } catch (e) { setError(errorMessage(e)); }
     finally { setBusy(false); }
   }
@@ -38,66 +39,77 @@ export default function OnboardingScreen() {
     <RScreen>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
             paddingTop: insets.top + 32,
             paddingBottom: insets.bottom + 24,
             paddingHorizontal: 24,
             justifyContent: 'center',
-            gap: 24,
+            gap: RSpacing.xl,
           }}>
           <View style={{ alignItems: 'center', gap: 6 }}>
             <Text style={styles.brand}>REMONTADA</Text>
-            <Text style={styles.title}>Welcome!</Text>
-            <Text style={styles.subtitle}>Let&apos;s set up your profile so rankings work correctly for you.</Text>
+            <Text style={styles.title}>Willkommen!</Text>
+            <Text style={styles.subtitle}>Richte dein Profil ein, damit die Rangliste für dich korrekt funktioniert.</Text>
           </View>
 
-          <View style={{ gap: 8 }}>
-            <Text style={styles.label}>Your Name</Text>
-            <RCard contentStyle={{ paddingHorizontal: 4 }}>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="e.g. Jakob"
-                placeholderTextColor={RColors.text9}
-                style={styles.textInput}
-                autoCapitalize="words"
-                autoFocus
-                maxLength={60}
-                editable={!busy}
-              />
-            </RCard>
-          </View>
+          <RInput
+            label="Dein Name"
+            value={name}
+            onChangeText={setName}
+            placeholder="z.B. Jakob"
+            autoCapitalize="words"
+            autoFocus
+            maxLength={60}
+            editable={!busy}
+            returnKeyType="done"
+          />
 
-          <View style={{ gap: 8 }}>
-            <Text style={styles.label}>Gender</Text>
+          <View style={{ gap: RSpacing.sm }}>
+            <Text style={styles.label}>Geschlecht</Text>
             <Text style={styles.helperText}>
-              Used only to show you the right category ranks (Men / Women / Mixed / Open).
+              Wird nur genutzt, um dir die passende Kategorie in der Rangliste zu zeigen (Männer / Frauen / Mixed / Offen).
             </Text>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flexDirection: 'row', gap: RSpacing.md }}>
               <GenderOption
-                label="Male"
+                label="Männlich"
                 icon="gender-male"
                 active={gender === 'Male'}
+                disabled={busy}
                 onPress={() => setGender('Male')}
               />
               <GenderOption
-                label="Female"
+                label="Weiblich"
                 icon="gender-female"
                 active={gender === 'Female'}
+                disabled={busy}
                 onPress={() => setGender('Female')}
               />
             </View>
           </View>
 
-          {error && <Text accessibilityRole="alert" style={{ color: RColors.lossRed }}>{error}</Text>}
-          <RButton label={busy ? 'Saving…' : 'Continue'} onPress={() => void onSubmit()} disabled={!canSubmit || busy} style={{ marginTop: 8 }} />
-          {!demoMode && <RButton label="Sign out" disabled={busy} onPress={() => void signOut().catch((e) => setError(errorMessage(e)))} />}
+          {error && <RErrorBanner message={error} />}
 
-          <View style={styles.demoNoteRow}>
-            <Ionicons name="information-circle-outline" size={14} color={RColors.text9} />
-            <Text style={styles.demoNote}>{demoMode ? 'Local demo only. Example matches stay until you reset from Settings.' : 'Your display name and category information are visible to signed-in players. Your email address is not shared with them.'}</Text>
-          </View>
+          <RButton
+            label={busy ? 'Wird gespeichert…' : 'Profil speichern'}
+            onPress={() => void onSubmit()}
+            disabled={!canSubmit || busy}
+            style={{ marginTop: RSpacing.xs }}
+          />
+          {!demoMode && (
+            <RButtonOutline
+              label="Abmelden"
+              disabled={busy}
+              onPress={() => void signOut().catch((e) => setError(errorMessage(e)))}
+            />
+          )}
+
+          <Text style={styles.demoNote}>
+            {demoMode
+              ? 'Nur lokale Demo. Beispiel-Matches bleiben bestehen, bis du sie in den Einstellungen zurücksetzt.'
+              : 'Dein Anzeigename und deine Kategorie sind für angemeldete Spieler sichtbar. Deine E-Mail-Adresse wird nicht geteilt.'}
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </RScreen>
@@ -108,19 +120,28 @@ function GenderOption({
   label,
   icon,
   active,
+  disabled,
   onPress,
 }: {
   label: string;
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
   active: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   return (
-    <Pressable style={{ flex: 1 }} onPress={onPress}>
+    <Pressable
+      style={{ flex: 1 }}
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="radio"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active, disabled: !!disabled }}
+      hitSlop={4}>
       <RCard
         borderColor={active ? RColors.accent : RColors.cardBorder}
         contentStyle={[styles.genderOption, active && { backgroundColor: withAlpha(RColors.accent, 0.16) }]}>
-        <MaterialCommunityIcons name={icon} size={24} color={active ? RColors.accent : RColors.text5} />
+        <MaterialCommunityIcons name={icon} size={RSize.iconLg} color={active ? RColors.accent : RColors.text5} />
         <Text style={[styles.genderLabel, active && { color: RColors.textPrimary }]}>{label}</Text>
       </RCard>
     </Pressable>
@@ -130,12 +151,10 @@ function GenderOption({
 const styles = StyleSheet.create({
   brand: { fontFamily: 'Rajdhani_700Bold', fontSize: 16, letterSpacing: 2, color: RColors.accentLink },
   title: { fontFamily: 'Rajdhani_700Bold', fontSize: 28, color: RColors.textPrimary },
-  subtitle: { fontSize: 13, color: RColors.text7, textAlign: 'center', paddingHorizontal: 12 },
-  label: { fontSize: 11, fontWeight: '600', letterSpacing: 0.6, textTransform: 'uppercase', color: RColors.text9 },
-  helperText: { fontSize: 11, color: RColors.text9, marginTop: -4 },
-  textInput: { paddingVertical: 13, paddingHorizontal: 12, fontSize: 14, color: RColors.textPrimary },
-  genderOption: { paddingVertical: 18, alignItems: 'center', gap: 8 },
-  genderLabel: { fontSize: 13, fontWeight: '600', color: RColors.text5 },
-  demoNoteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 4 },
-  demoNote: { flex: 1, fontSize: 10, color: RColors.text9, lineHeight: 14 },
+  subtitle: { fontFamily: 'Barlow_400Regular', fontSize: 14, color: RColors.text7, textAlign: 'center', paddingHorizontal: 12 },
+  label: { fontFamily: 'Barlow_600SemiBold', fontSize: 11, letterSpacing: 0.6, textTransform: 'uppercase', color: RColors.text9 },
+  helperText: { fontFamily: 'Barlow_400Regular', fontSize: 12, color: RColors.text9, marginTop: -2 },
+  genderOption: { paddingVertical: 18, alignItems: 'center', gap: RSpacing.sm, minHeight: RSize.minTouch },
+  genderLabel: { fontFamily: 'Barlow_600SemiBold', fontSize: 13, color: RColors.text5 },
+  demoNote: { fontFamily: 'Barlow_400Regular', fontSize: 11, lineHeight: 15, color: RColors.text9, textAlign: 'center', paddingHorizontal: 8 },
 });

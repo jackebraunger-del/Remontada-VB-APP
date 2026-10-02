@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FrameRing } from '@/components/remontada/icons';
 import { RButton, RScreen, RTile } from '@/components/remontada/primitives';
 import { RColors } from '@/constants/remontada-colors';
+import { RARITY_LABELS, SKIN_KIND_LABELS } from '@/constants/remontada-labels';
 import { SKINS } from '@/lib/remontada-mock-data';
 
 const stormServe = SKINS.find((s) => s.id === 'storm-serve')!;
@@ -28,19 +29,19 @@ export default function RewardSkinScreen() {
   return (
     <RScreen style={{ paddingTop: insets.top + 10 }}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Daily Reward</Text>
+        <Text style={styles.headerTitle}>Tages-Belohnung</Text>
       </View>
 
       <View style={styles.subRow}>
         <Text style={styles.subText}>
-          You won as <Text style={{ color: RColors.win, fontWeight: '600' }}>Team A</Text> · Ranked ·{' '}
-          <Text style={{ color: RColors.win, fontWeight: '600' }}>+24 Rating</Text>
+          Du hast als <Text style={{ color: RColors.win, fontWeight: '600' }}>Team A</Text> gewonnen · Gewertet ·{' '}
+          <Text style={{ color: RColors.win, fontWeight: '600' }}>+24 Wertung</Text>
         </Text>
       </View>
 
       <View style={styles.center}>
         <Animated.View style={[styles.rays, rayStyle]} />
-        <Text style={styles.rareLabel}>Rare Drop</Text>
+        <Text style={styles.rareLabel}>Seltener Fund</Text>
         <Animated.View style={cardStyle}>
           <RTile
             style={{ width: 150 }}
@@ -48,14 +49,16 @@ export default function RewardSkinScreen() {
             contentStyle={{ paddingVertical: 22, paddingHorizontal: 16, alignItems: 'center', gap: 10 }}>
             <FrameRing size={64} gradientFrom={skin.gradientFrom} gradientTo={skin.gradientTo} />
             <Text style={styles.skinName}>{skin.name}</Text>
-            <Text style={styles.skinRarity}>{skin.rarity} · {skin.kind}</Text>
+            <Text style={styles.skinRarity}>
+              {RARITY_LABELS[skin.rarity] ?? skin.rarity} · {SKIN_KIND_LABELS[skin.kind] ?? skin.kind}
+            </Text>
           </RTile>
         </Animated.View>
-        <Text style={styles.hint}>Added to your Locker — most days you&apos;ll get coins instead.</Text>
+        <Text style={styles.hint}>Deinem Spind hinzugefügt — an den meisten Tagen bekommst du stattdessen Coins.</Text>
       </View>
 
       <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 20 }}>
-        <RButton label="Continue" style={{ width: '100%' }} onPress={() => router.back()} />
+        <RButton label="Weiter" style={{ width: '100%' }} onPress={() => router.back()} />
       </View>
     </RScreen>
   );

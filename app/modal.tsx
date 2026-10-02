@@ -1,17 +1,20 @@
 import { Link } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { RButton, RScreen } from '@/components/remontada/primitives';
+import { RColors } from '@/constants/remontada-colors';
 
+// Übrig gebliebene Expo-Vorlagenseite (Route bleibt bestehen, falls
+// irgendwo darauf verlinkt wird) – im Remontada-Look statt der
+// generischen Vorlagenoptik.
 export default function ModalScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">This is a modal</ThemedText>
-      <Link href="/" dismissTo style={styles.link}>
-        <ThemedText type="link">Go to home screen</ThemedText>
+    <RScreen style={styles.container}>
+      <Text style={styles.title}>Das ist ein Modal-Fenster</Text>
+      <Link href="/" dismissTo asChild>
+        <RButton label="Zur Startseite" style={{ marginTop: 15 }} />
       </Link>
-    </ThemedView>
+    </RScreen>
   );
 }
 
@@ -22,8 +25,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
+  title: {
+    fontFamily: 'Rajdhani_700Bold',
+    fontSize: 22,
+    color: RColors.textPrimary,
   },
 });

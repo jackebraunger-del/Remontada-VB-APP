@@ -1,13 +1,12 @@
 // Browser alternative: importing react-native-maps here would prevent web builds.
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Linking, ScrollView, Text, TextInput, View } from 'react-native';
+import { Linking, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RButton, RButtonOutline, RCard, RScreen } from '@/components/remontada/primitives';
+import { RButton, RButtonOutline, RCard, REmptyState, RErrorBanner, RInput, RScreen } from '@/components/remontada/primitives';
 import { onlineStyles as s } from '@/components/remontada/OnlineScreens';
 import { useAppData } from '@/lib/remontada-context';
 import { errorMessage } from '@/lib/supabase';
-import { RColors } from '@/constants/remontada-colors';
 
 export default function WebCourtsScreen() {
   const { customCourts, addCustomCourt, setPendingLocationPick } = useAppData();
@@ -25,33 +24,67 @@ export default function WebCourtsScreen() {
   };
   async function save() {
     if (lock.current) return;
-    lock.current = true; setBusy(true); setError(null);
+    lock.current = true;
+    setBusy(true);
+    setError(null);
     try {
-      const latitude = Number(lat); const longitude = Number(lng);
-      if (!name.trim() || !lat.trim() || !lng.trim() || !Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) throw new Error('Enter a court name and valid latitude / longitude.');
+      const latitude = Number(lat);
+      const longitude = Number(lng);
+      if (!name.trim() || !lat.trim() || !lng.trim() || !Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+        throw new Error('Gib einen Platznamen sowie einen gültigen Breiten- und Längengrad ein.');
+      }
       await addCustomCourt(name.trim(), latitude, longitude);
       if (pick === '1') choose({ name: name.trim(), lat: latitude, lng: longitude });
-      setName(''); setLat(''); setLng('');
-    } catch (e) { setError(errorMessage(e)); }
-    finally { lock.current = false; setBusy(false); }
+      setName('');
+      setLat('');
+      setLng('');
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
   }
-  return <RScreen><ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 20, gap: 18 }}>
-    <Text style={s.title}>COURTS</Text>
-    <Text style={s.body}>The interactive map is available in the mobile app. Here you can use saved courts or add one by coordinates.</Text>
-    {pick === '1' && <RButtonOutline label="Back to match creation" onPress={() => router.back()} />}
-    {customCourts.length === 0 && <Text style={s.muted}>No saved courts yet. You can also enter a meeting point directly when creating a match.</Text>}
-    {customCourts.map((court) => <RCard key={court.id} contentStyle={s.card}>
-      <Text style={s.heading}>{court.name}</Text>
-      <Text style={s.muted}>{court.lat}, {court.lng}</Text>
-      {pick === '1' ? <RButton label="Use this court" onPress={() => choose(court)} /> : <RButtonOutline label="Open map" onPress={() => void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${court.lat},${court.lng}`).catch((e) => setError(errorMessage(e)))} />}
-    </RCard>)}
-    <View style={{ gap: 12 }}>
-      <Text style={s.heading}>Add a court</Text>
-      <TextInput accessibilityLabel="Court name" value={name} onChangeText={setName} editable={!busy} maxLength={120} placeholder="Court name" placeholderTextColor={RColors.text9} style={s.input} />
-      <TextInput accessibilityLabel="Latitude" value={lat} onChangeText={setLat} editable={!busy} placeholder="Latitude, e.g. 28.13" placeholderTextColor={RColors.text9} style={s.input} />
-      <TextInput accessibilityLabel="Longitude" value={lng} onChangeText={setLng} editable={!busy} placeholder="Longitude, e.g. -15.43" placeholderTextColor={RColors.text9} style={s.input} />
-      {error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
-      <RButton label={busy ? 'Saving…' : 'Save court'} disabled={busy} onPress={() => void save()} />
-    </View>
-  </ScrollView></RScreen>;
+  return (
+    <RScreen>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 20, paddingBottom: 32, alignItems: 'center' }}>
+        <View style={{ width: '100%', maxWidth: 560, gap: 18 }}>
+          <Text style={s.title}>SPIELFELDER</Text>
+          <Text style={s.body}>Die interaktive Karte gibt es in der mobilen App. Hier kannst du gespeicherte Plätze nutzen oder einen per Koordinaten hinzufügen.</Text>
+          {pick === '1' && <RButtonOutline label="Zurück zur Match-Erstellung" onPress={() => router.back()} />}
+          {customCourts.length === 0 && (
+            <REmptyState
+              icon="location-outline"
+              title="Noch keine gespeicherten Plätze"
+              description="Du kannst beim Erstellen eines Matches auch direkt einen Treffpunkt eingeben."
+            />
+          )}
+          {customCourts.map((court) => (
+            <RCard key={court.id} contentStyle={s.card}>
+              <Text style={s.heading}>{court.name}</Text>
+              <Text style={s.muted}>
+                {court.lat}, {court.lng}
+              </Text>
+              {pick === '1' ? (
+                <RButton label="Diesen Platz verwenden" onPress={() => choose(court)} />
+              ) : (
+                <RButtonOutline
+                  label="Karte öffnen"
+                  onPress={() => void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${court.lat},${court.lng}`).catch((e) => setError(errorMessage(e)))}
+                />
+              )}
+            </RCard>
+          ))}
+          <View style={{ gap: 12 }}>
+            <Text style={s.heading}>Platz hinzufügen</Text>
+            <RInput label="Platzname" value={name} onChangeText={setName} editable={!busy} maxLength={120} placeholder="Name des Platzes" />
+            <RInput label="Breitengrad" value={lat} onChangeText={setLat} editable={!busy} placeholder="z.B. 28.13" keyboardType="numbers-and-punctuation" />
+            <RInput label="Längengrad" value={lng} onChangeText={setLng} editable={!busy} placeholder="z.B. -15.43" keyboardType="numbers-and-punctuation" />
+            {error && <RErrorBanner message={error} />}
+            <RButton label={busy ? 'Wird gespeichert…' : 'Platz speichern'} disabled={busy} onPress={() => void save()} />
+          </View>
+        </View>
+      </ScrollView>
+    </RScreen>
+  );
 }

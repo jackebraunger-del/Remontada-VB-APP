@@ -11,15 +11,15 @@ import {
   Rajdhani_700Bold,
 } from '@expo-google-fonts/rajdhani';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Slot, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import { ActivityIndicator, View } from 'react-native';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 import { OnlineDataProvider } from '@/lib/online-context';
 import { demoMode } from '@/lib/supabase';
 import { AuthScreen } from '@/components/remontada/AuthScreen';
+import { RLoading, RScreen } from '@/components/remontada/primitives';
 
 import { RColors } from '@/constants/remontada-colors';
 import { AppDataProvider, useAppData } from '@/lib/remontada-context';
@@ -43,6 +43,7 @@ const RemontadaTheme = {
 };
 
 export default function RootLayout() {
+  const pathname = usePathname();
   const [fontsLoaded] = useFonts({
     Rajdhani_500Medium,
     Rajdhani_600SemiBold,
@@ -52,6 +53,11 @@ export default function RootLayout() {
     Barlow_600SemiBold,
     Barlow_700Bold,
   });
+
+  // This isolated, public prototype has no account or backend data dependencies.
+  if (pathname === '/understanding') {
+    return <GestureHandlerRootView style={{ flex: 1 }}><Slot /></GestureHandlerRootView>;
+  }
 
   if (!fontsLoaded) {
     return null;
@@ -72,7 +78,7 @@ export default function RootLayout() {
 function AccountBoundary() {
   const { loading, session } = useAuth();
   if (demoMode) return <AppDataProvider><AppNavigator /></AppDataProvider>;
-  if (loading) return <View style={{ flex: 1, justifyContent: 'center', backgroundColor: RColors.bgApp }}><ActivityIndicator color={RColors.accent} /></View>;
+  if (loading) return <RScreen><RLoading label="Wird geladen…" /></RScreen>;
   if (!session) return <AuthScreen />;
   // Remount all state on account changes: no previous account's data remains in memory.
   return <OnlineDataProvider key={session.user.id}><AppNavigator /></OnlineDataProvider>;
